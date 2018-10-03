@@ -1,0 +1,44 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+CIRCLE	circle.c	20;"	d	file:
+CIRCLE	led_disp.c	30;"	d	file:
+DISP_DEV	display.h	22;"	d
+DrawLedMatrix	led_disp.c	/^static void DrawLedMatrix(unsigned int width, unsigned int height)$/;"	f	file:
+LED_DISP_COLOR	led_disp.h	22;"	d
+LED_OFF	main.c	22;"	d	file:
+LED_ON	main.c	23;"	d	file:
+LED_PITCH	led_disp.h	24;"	d
+LED_SIZE	led_disp.h	23;"	d
+MakeLED	led_disp.c	/^static void MakeLED(int centre_x, int centre_y, int radius, unsigned int color)$/;"	f	file:
+SetPixel	circle.c	/^static t_setpixel SetPixel;$/;"	v	file:
+__CIRCLE_H__	circle.h	20;"	d
+__DISPLAY_H__	display.h	20;"	d
+__LED_DISP_H__	led_disp.h	20;"	d
+circle_DrawFilled	circle.c	/^void circle_DrawFilled(int centre_x, int centre_y, int radius, unsigned int color)$/;"	f
+circle_Init	circle.c	/^void circle_Init(t_setpixel setpixel_hndlr)$/;"	f
+display_Exit	display.c	/^void display_Exit(void)$/;"	f
+display_GetHeight	display.c	/^unsigned int display_GetHeight(void)$/;"	f
+display_GetPixel	display.c	/^unsigned int display_GetPixel(int x, int y)$/;"	f
+display_GetWidth	display.c	/^unsigned int display_GetWidth(void)$/;"	f
+display_Init	display.c	/^void display_Init(void)$/;"	f
+display_SetPixel	display.c	/^int display_SetPixel(int x, int y, unsigned int color)$/;"	f
+fbfd	display.c	/^static int fbfd = 0;$/;"	v	file:
+fbp	display.c	/^static char *fbp = NULL;$/;"	v	file:
+finfo	display.c	/^static struct fb_fix_screeninfo finfo;$/;"	v	typeref:struct:fb_fix_screeninfo	file:
+led_disp_Exit	led_disp.c	/^void led_disp_Exit(void)$/;"	f
+led_disp_GetHeight	led_disp.c	/^void led_disp_GetHeight(void)$/;"	f
+led_disp_GetWidth	led_disp.c	/^void led_disp_GetWidth(void)$/;"	f
+led_disp_Init	led_disp.c	/^void led_disp_Init(void)$/;"	f
+led_disp_SetLedOn	led_disp.c	/^void led_disp_SetLedOn(int x, int y, int color)$/;"	f
+led_disp_height	led_disp.c	/^static unsigned int led_disp_height = 0;$/;"	v	file:
+led_disp_width	led_disp.c	/^static unsigned int led_disp_width = 0;$/;"	v	file:
+led_pitch	led_disp.c	/^static int led_pitch = LED_PITCH;$/;"	v	file:
+main	main.c	/^int main()$/;"	f
+screensize	display.c	/^static long int screensize = 0;$/;"	v	file:
+t_setpixel	circle.h	/^typedef void (*t_setpixel) (int, int, unsigned int);$/;"	t
+tty_fd	display.c	/^static int tty_fd = 0;$/;"	v	file:
+vinfo	display.c	/^static struct fb_var_screeninfo vinfo;$/;"	v	typeref:struct:fb_var_screeninfo	file:

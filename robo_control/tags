@@ -1,0 +1,93 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+BIN	Makefile	/^BIN := robo-demo$/;"	m
+BIN	gpioctrl/Makefile	/^BIN := testgpio$/;"	m
+BIN	pwmctrl/Makefile	/^BIN := testpwm$/;"	m
+CC	Makefile	/^CC := \/media\/jagdish\/JP1\/embeddedRnd\/buildroot\/output\/host\/bin\/arm-buildroot-linux-uclibcgnueabihf-gcc$/;"	m
+CC	gpioctrl/Makefile	/^CC := gcc$/;"	m
+CC	pwmctrl/Makefile	/^CC := gcc$/;"	m
+DEF_DUTY	pwmctrl/testpwm.c	23;"	d	file:
+INC	Makefile	/^INC := -I.\/ -I.\/gpioctrl\/ -I.\/pwmctrl\/$/;"	m
+INC	gpioctrl/Makefile	/^INC := -I.\/$/;"	m
+INC	pwmctrl/Makefile	/^INC := -I.\/$/;"	m
+IODIR_IN	gpioctrl/gpioctrl.h	24;"	d
+IODIR_OUT	gpioctrl/gpioctrl.h	25;"	d
+LDLIB	Makefile	/^LDLIB := -lpthread$/;"	m
+LDLIB	gpioctrl/Makefile	/^LDLIB :=$/;"	m
+LDLIB	pwmctrl/Makefile	/^LDLIB :=$/;"	m
+LIB	Makefile	/^LIB :=$/;"	m
+LIB	gpioctrl/Makefile	/^LIB :=$/;"	m
+LIB	pwmctrl/Makefile	/^LIB :=$/;"	m
+MAX_PATH_LEN	gpioctrl/gpioctrl.c	23;"	d	file:
+MAX_PATH_LEN	pwmctrl/pwmctrl.c	23;"	d	file:
+PERIOD	pwmctrl/testpwm.c	22;"	d	file:
+PWM_PERIOD	roboctrl.c	26;"	d	file:
+PWM_START	roboctrl.c	27;"	d	file:
+PWM_STOP	roboctrl.c	28;"	d	file:
+RD_BACKWORD	roboctrl.h	/^    RD_BACKWORD,$/;"	e	enum:__anon1
+RD_FORWORD	roboctrl.h	/^    RD_FORWORD = 0,$/;"	e	enum:__anon1
+RD_LEFT	roboctrl.h	/^    RD_LEFT,$/;"	e	enum:__anon1
+RD_RIGHT	roboctrl.h	/^    RD_RIGHT,$/;"	e	enum:__anon1
+RD_STOP	roboctrl.h	/^    RD_STOP,$/;"	e	enum:__anon1
+ROBO_LMOTOR_T0	roboctrl.h	28;"	d
+ROBO_LMOTOR_T1	roboctrl.h	29;"	d
+ROBO_LSENSOR	roboctrl.h	22;"	d
+ROBO_RMOTOR_T0	roboctrl.h	25;"	d
+ROBO_RMOTOR_T1	roboctrl.h	26;"	d
+ROBO_RSENSOR	roboctrl.h	23;"	d
+ROBO_SCAN_DELAY	roboctrl.h	31;"	d
+SRC	Makefile	/^SRC := pwmctrl\/pwmctrl.c gpioctrl\/gpioctrl.c roboctrl.c robo-main.c$/;"	m
+SRC	gpioctrl/Makefile	/^SRC := gpioctrl.c testgpio.c$/;"	m
+SRC	pwmctrl/Makefile	/^SRC := pwmctrl.c testpwm.c$/;"	m
+SYS_GPIO	gpioctrl/gpioctrl.h	22;"	d
+SYS_PWMCHIP0	pwmctrl/pwmctrl.h	22;"	d
+__GPIOCTRL_H__	gpioctrl/gpioctrl.h	20;"	d
+__PWMCTRL_H__	pwmctrl/pwmctrl.h	20;"	d
+__ROBOCTRL_H__	roboctrl.h	20;"	d
+connection_handler	ctrlServer.c	/^void *connection_handler(void *socket_desc)$/;"	f
+createGpioControl	gpioctrl/gpioctrl.c	/^int createGpioControl(int pin)$/;"	f
+createPwmControl	pwmctrl/pwmctrl.c	/^int createPwmControl(int pin)  \/* pin (0...15)*\/$/;"	f
+current_robo_dir	roboctrl.c	/^static robodir_t current_robo_dir = RD_STOP;$/;"	v	file:
+current_speed	roboctrl.c	/^static unsigned long current_speed = PWM_PERIOD >> 1;$/;"	v	file:
+getDirection	gpioctrl/gpioctrl.c	/^int getDirection(int pin)$/;"	f
+getDutyCycle	pwmctrl/pwmctrl.c	/^long getDutyCycle(int pin)$/;"	f
+getEnable	pwmctrl/pwmctrl.c	/^int getEnable(int pin)$/;"	f
+getPeriod	pwmctrl/pwmctrl.c	/^long getPeriod(int pin)$/;"	f
+getValue	gpioctrl/gpioctrl.c	/^int getValue(int pin)$/;"	f
+last_robo_dir	roboctrl.c	/^static robodir_t last_robo_dir = RD_STOP;$/;"	v	file:
+last_speed	roboctrl.c	/^static unsigned long last_speed = PWM_PERIOD >> 1;$/;"	v	file:
+main	ctrlServer.c	/^int main(int argc , char *argv[])$/;"	f
+main	gpioctrl/testgpio.c	/^int main(int argc, char *argv[])$/;"	f
+main	pwmctrl/testpwm.c	/^int main(int argc, char *argv[])$/;"	f
+main	robo-main.c	/^int main(int argc, char *argv[])$/;"	f
+main	testclient.c	/^int main(int argc , char *argv[])$/;"	f
+robo_autocontrol_started	roboctrl.c	/^static int robo_autocontrol_started = 0;$/;"	v	file:
+robo_decSpeed	roboctrl.c	/^void robo_decSpeed(void) {$/;"	f
+robo_exit	roboctrl.c	/^void robo_exit(void)$/;"	f
+robo_getDirection	roboctrl.c	/^robodir_t robo_getDirection(void)$/;"	f
+robo_getLastTurn	roboctrl.c	/^static robodir_t robo_getLastTurn(void)$/;"	f	file:
+robo_getSpeed	roboctrl.c	/^int robo_getSpeed(void)$/;"	f
+robo_handler	roboctrl.c	/^static void *robo_handler(void *ctx)$/;"	f	file:
+robo_incSpeed	roboctrl.c	/^void robo_incSpeed(void) {$/;"	f
+robo_init	roboctrl.c	/^int robo_init(void)$/;"	f
+robo_initialized	roboctrl.c	/^static int robo_initialized = 0;$/;"	v	file:
+robo_isAutoControlOn	roboctrl.c	/^int robo_isAutoControlOn(void)$/;"	f
+robo_isInitDone	roboctrl.c	/^int robo_isInitDone(void) {$/;"	f
+robo_last_turn	roboctrl.c	/^static robodir_t robo_last_turn = RD_LEFT;$/;"	v	file:
+robo_lock	roboctrl.c	/^static pthread_mutex_t robo_lock = PTHREAD_MUTEX_INITIALIZER;$/;"	v	file:
+robo_setDirection	roboctrl.c	/^void robo_setDirection(robodir_t dir)$/;"	f
+robo_setSpeed	roboctrl.c	/^void robo_setSpeed(int speed) \/* 0 - 100 *\/$/;"	f
+robo_startAutoControl	roboctrl.c	/^int robo_startAutoControl(void)$/;"	f
+robo_stopAutoControl	roboctrl.c	/^void robo_stopAutoControl(void)$/;"	f
+robo_thread	roboctrl.c	/^static pthread_t robo_thread;$/;"	v	file:
+robo_updateMove	roboctrl.c	/^static void robo_updateMove(void)$/;"	f	file:
+robodir_t	roboctrl.h	/^} robodir_t;$/;"	t	typeref:enum:__anon1
+setDirection	gpioctrl/gpioctrl.c	/^int setDirection(int pin, const char *direction)$/;"	f
+setDutyCycle	pwmctrl/pwmctrl.c	/^int setDutyCycle(int pin, unsigned long duty_cycle)$/;"	f
+setEnable	pwmctrl/pwmctrl.c	/^int setEnable(int pin, unsigned int enable)$/;"	f
+setPeriod	pwmctrl/pwmctrl.c	/^int setPeriod(int pin, unsigned long period)$/;"	f
+setValue	gpioctrl/gpioctrl.c	/^int setValue(int pin, int value)$/;"	f

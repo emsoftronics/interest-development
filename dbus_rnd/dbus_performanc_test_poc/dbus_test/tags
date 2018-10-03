@@ -1,0 +1,91 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+AddServerTimeout	DBusService.cpp	/^dbus_bool_t CDBusService::AddServerTimeout(DBusTimeout *t_pTimeout, void *t_pData)$/;"	f	class:CDBusService
+AddServerWatch	DBusService.cpp	/^dbus_bool_t CDBusService::AddServerWatch(DBusWatch *t_pWatch, void *t_pData)$/;"	f	class:CDBusService
+AddTimeout	DBusService.cpp	/^dbus_bool_t CDBusService::AddTimeout(DBusTimeout *t_pTimeout, void *t_pData)$/;"	f	class:CDBusService
+AddWatch	DBusService.cpp	/^dbus_bool_t CDBusService::AddWatch(DBusWatch *t_pWatch, void *t_pData)$/;"	f	class:CDBusService
+CDBusService	DBusService.cpp	/^CDBusService::CDBusService(const char *p_InterfaceName, DBusObjectPathMessageFunction p_MessageFunction,$/;"	f	class:CDBusService
+CDBusService	DBusService.h	/^class CDBusService$/;"	c
+CData	DBusService.h	/^} CData;$/;"	t	typeref:struct:__anon1
+CDataFree	DBusService.cpp	/^void CDBusService::CDataFree(void *t_pData)$/;"	f	class:CDBusService
+CDataNew	DBusService.cpp	/^CData* CDBusService::CDataNew(DBusLoop *t_pLoop, DBusConnection *t_pConnection)$/;"	f	class:CDBusService
+CHANGE_CLIENT_BY	DBusPocClient.cpp	11;"	d	file:
+CallMethod	DBusPocClient.cpp	/^void CallMethod(CDBusService *cdbus)$/;"	f
+CallMethod2	DBusPocClient.cpp	/^void CallMethod2(CDBusService *cdbus)$/;"	f
+DBUS_COMPILATION	DBusService.h	5;"	d
+DBusServiceManagerInitialize	DBusService.cpp	/^int CDBusService::DBusServiceManagerInitialize()$/;"	f	class:CDBusService
+DBusServiceManagerRun	DBusService.cpp	/^int CDBusService::DBusServiceManagerRun(void)$/;"	f	class:CDBusService
+DbusCallWaitingThread	DBusService.cpp	/^void *CDBusService::DbusCallWaitingThread(void *obj)$/;"	f	class:CDBusService
+DefaultPathMessageFunction	DBusService.cpp	/^DBusHandlerResult CDBusService::DefaultPathMessageFunction(DBusConnection *t_pConnection, DBusMessage *t_pMessage, void *t_pUserData)$/;"	f	class:CDBusService
+DispatchStatusFunction	DBusService.cpp	/^void CDBusService::DispatchStatusFunction (DBusConnection *t_pConnection, DBusDispatchStatus t_NewStatus, void *t_pData)$/;"	f	class:CDBusService
+FilterFunction	DBusService.cpp	/^DBusHandlerResult CDBusService::FilterFunction(DBusConnection *t_pConnection, DBusMessage *t_pMessage, void *t_pUserData)$/;"	f	class:CDBusService
+FreeObjectPathRetrievedByInterface	DBusService.cpp	/^void CDBusService::FreeObjectPathRetrievedByInterface(char *t_ObjPath)$/;"	f	class:CDBusService
+GetCurrentTime	DBusPocClient.cpp	/^static void GetCurrentTime(struct timespec *spec)$/;"	f	file:
+GetElapsedTimeSince	DBusPocClient.cpp	/^static long GetElapsedTimeSince(struct timespec *lastTime)$/;"	f	file:
+GetInterFaceName	DBusService.cpp	/^const char *CDBusService::GetInterFaceName()$/;"	f	class:CDBusService
+GetObjectPathByInterface	DBusService.cpp	/^char *CDBusService::GetObjectPathByInterface(const char *t_pInterfaceName)$/;"	f	class:CDBusService
+GetServiceObjectPathName	DBusService.cpp	/^const char *CDBusService::GetServiceObjectPathName()$/;"	f	class:CDBusService
+GetStr	DBusPocClient.cpp	/^static char *GetStr(char c, unsigned int count)$/;"	f	file:
+InitClient	DBusPocClient.cpp	/^static void InitClient(void)$/;"	f	file:
+IsValidDbusConnection	DBusService.cpp	/^int CDBusService::IsValidDbusConnection()$/;"	f	class:CDBusService
+LOCAL_CFLAGS	Android.mk	/^LOCAL_CFLAGS := -Wall -Wno-missing-field-initializers -Wno-unused-variable -Wno-unused-parameter -lpthread$/;"	m
+LOCAL_C_INCLUDES	Android.mk	/^LOCAL_C_INCLUDES := $(LOCAL_PATH) $/;"	m
+LOCAL_MODULE	Android.mk	/^LOCAL_MODULE:= dbusPocClient$/;"	m
+LOCAL_MODULE	Android.mk	/^LOCAL_MODULE:= dbusPocServer$/;"	m
+LOCAL_PATH	Android.mk	/^LOCAL_PATH:= $(call my-dir)$/;"	m
+LOCAL_SHARED_LIBRARIES	Android.mk	/^LOCAL_SHARED_LIBRARIES := libdbus libcutils $/;"	m
+LOCAL_SRC_FILES	Android.mk	/^LOCAL_SRC_FILES := \\$/;"	m
+LOCAL_STRIP_MODULE	Android.mk	/^LOCAL_STRIP_MODULE := false$/;"	m
+LOG_TAG	DBusService.cpp	18;"	d	file:
+MAX_TRY	DBusPocClient.cpp	10;"	d	file:
+NotifyResponseReceived	DBusPocClient.cpp	/^static void NotifyResponseReceived(void)$/;"	f	file:
+PathMessageFunction	DBusPocClient.cpp	/^static DBusHandlerResult PathMessageFunction(DBusConnection *t_pConnection, DBusMessage *t_pMessage, void *t_pUserData)$/;"	f	file:
+PathMessageFunction	DBusPocServer.cpp	/^static DBusHandlerResult PathMessageFunction(DBusConnection *t_pConnection, DBusMessage *t_pMessage, void *t_pUserData)$/;"	f	file:
+RelayMessageToInterface	DBusService.cpp	/^void CDBusService::RelayMessageToInterface(char *t_pInterfaceName, DBusMessage * pMsg)$/;"	f	class:CDBusService
+RemoveServerTimeout	DBusService.cpp	/^void CDBusService::RemoveServerTimeout (DBusTimeout *t_pTimeout, void *t_pData)$/;"	f	class:CDBusService
+RemoveServerWatch	DBusService.cpp	/^void CDBusService::RemoveServerWatch(DBusWatch *t_pWatch, void *t_pData)$/;"	f	class:CDBusService
+RemoveTimeout	DBusService.cpp	/^void CDBusService::RemoveTimeout (DBusTimeout *t_pTimeout, void *t_pData)$/;"	f	class:CDBusService
+RemoveWatch	DBusService.cpp	/^void CDBusService::RemoveWatch(DBusWatch *t_pWatch, void *t_pData)$/;"	f	class:CDBusService
+SendMethodToInterface	DBusService.cpp	/^void CDBusService::SendMethodToInterface(char *t_pInterfaceName, char *t_pMethodName, int iArgType1, void *pArg1, int iArgType2, void *pArg2)$/;"	f	class:CDBusService
+SendMethodToInterface	DBusService.cpp	/^void CDBusService::SendMethodToInterface(char *t_pInterfaceName, char *t_pMethodName, unsigned char *t_pData, int t_nSize)$/;"	f	class:CDBusService
+SendMethodToInterfaceArgs	DBusService.cpp	/^dbus_bool_t CDBusService::SendMethodToInterfaceArgs(char *t_pInterfaceName, char *t_pMethodName, const char *t_pData, int t_nSize)$/;"	f	class:CDBusService
+SendMethodToInterfaceNoArgs	DBusService.cpp	/^dbus_bool_t CDBusService::SendMethodToInterfaceNoArgs(char *t_pInterfaceName, char *t_pMethodName)$/;"	f	class:CDBusService
+SendPrimitiveToInterface	DBusService.cpp	/^void CDBusService::SendPrimitiveToInterface(char *t_pInterfaceName, char *t_pMethodName, int t_iType, void *t_pData)$/;"	f	class:CDBusService
+SendSignalToInterface	DBusService.cpp	/^void CDBusService::SendSignalToInterface(char *t_pInterfaceName, char *t_pSignalName)$/;"	f	class:CDBusService
+ServerData	DBusService.h	/^} ServerData;$/;"	t	typeref:struct:__anon2
+ServerDataFree	DBusService.cpp	/^void CDBusService::ServerDataFree (void *t_pData)$/;"	f	class:CDBusService
+ServerDataNew	DBusService.cpp	/^ServerData* CDBusService::ServerDataNew(DBusLoop *t_pLoop, DBusServer *t_pServer)$/;"	f	class:CDBusService
+TestConnectionSetup	DBusService.cpp	/^dbus_bool_t CDBusService::TestConnectionSetup(DBusLoop *t_pLoop, DBusConnection *t_pConnection)$/;"	f	class:CDBusService
+TestConnectionShutdown	DBusService.cpp	/^void CDBusService::TestConnectionShutdown(DBusLoop *t_pLoop, DBusConnection *t_pConnection)$/;"	f	class:CDBusService
+TestServerSetup	DBusService.cpp	/^dbus_bool_t CDBusService::TestServerSetup(DBusLoop *t_pLoop, DBusServer *t_pServer)$/;"	f	class:CDBusService
+TestServerShutdown	DBusService.cpp	/^void CDBusService::TestServerShutdown(DBusLoop *t_pLoop, DBusServer *t_pServer)$/;"	f	class:CDBusService
+ToggleServerWatch	DBusService.cpp	/^void CDBusService::ToggleServerWatch(DBusWatch *t_pWatch, void *t_pData)$/;"	f	class:CDBusService
+ToggleWatch	DBusService.cpp	/^void CDBusService::ToggleWatch(DBusWatch *t_pWatch, void *t_pData)$/;"	f	class:CDBusService
+WaitForResponse	DBusPocClient.cpp	/^static void WaitForResponse(int timeout)$/;"	f	file:
+__DBUSSERVICE_H__	DBusService.h	2;"	d
+clientInterface	DBusPocClient.cpp	/^static char clientInterface[] = "test.client0.interface";$/;"	v	file:
+connection	DBusService.h	/^    DBusConnection *connection;$/;"	m	struct:__anon1
+delay	DBusPocServer.cpp	/^static void delay(int count)$/;"	f	file:
+gMethod	DBusPocClient.cpp	/^static char gMethod[] = "f0";$/;"	v	file:
+gSignal	DBusPocClient.cpp	/^static char gSignal[] = "s0";$/;"	v	file:
+loop	DBusService.h	/^    DBusLoop *loop;$/;"	m	struct:__anon1
+loop	DBusService.h	/^    DBusLoop *loop;$/;"	m	struct:__anon2
+m_hThread	DBusService.h	/^        pthread_t        m_hThread;$/;"	m	class:CDBusService
+m_pCallbackVtable	DBusService.h	/^        DBusObjectPathVTable m_pCallbackVtable;$/;"	m	class:CDBusService
+m_pConnection	DBusService.h	/^        DBusConnection 	*m_pConnection;$/;"	m	class:CDBusService
+m_pLoop	DBusService.h	/^        DBusLoop 		*m_pLoop;$/;"	m	class:CDBusService
+m_pMedallionServiceMgrName	DBusService.h	/^        char		    *m_pMedallionServiceMgrName;$/;"	m	class:CDBusService
+m_pMedallionServicePath	DBusService.h	/^        char		    *m_pMedallionServicePath;$/;"	m	class:CDBusService
+main	DBusPocClient.cpp	/^int main(int argc, char **argv)$/;"	f
+main	DBusPocServer.cpp	/^int main(int argc, char **argv)$/;"	f
+mutexLock	DBusPocClient.cpp	/^static pthread_mutex_t mutexLock;$/;"	v	file:
+requestedTime	DBusPocClient.cpp	/^static struct timespec requestedTime;$/;"	v	typeref:struct:timespec	file:
+responseWaitLock	DBusPocClient.cpp	/^static sem_t responseWaitLock;$/;"	v	file:
+server	DBusService.h	/^    DBusServer *server;$/;"	m	struct:__anon2
+serverInterface	DBusPocClient.cpp	/^static char serverInterface[64];$/;"	v	file:
+tmpBuff	DBusPocClient.cpp	/^static char tmpBuff[128];$/;"	v	file:
+~CDBusService	DBusService.cpp	/^CDBusService::~CDBusService()$/;"	f	class:CDBusService

@@ -1,3 +1,2 @@
 # interest-development
-
-Developed source code for interest.
+Developed source code for some interesting works.

@@ -1,0 +1,38 @@
+#!/bin/bash
+src_dir=""
+dst_dir=""
+search_keywords=""
+
+for var in $@
+do
+	if [[ -d "$var" ]]; then
+		if [[ "$src_dir" == "" ]]; then
+			src_dir=$var
+		else
+			dst_dir=$var
+		fi
+	else
+		if [[ "$search_keywords" == "" ]]; then
+			search_keywords="-iname *${var}*"
+		else
+			search_keywords+=" -o -iname *${var}*"
+		fi
+	fi
+done
+
+if [[ "$src_dir" == "" ]]; then
+	src_dir="./"
+fi
+
+if [[ "$search_keywords" == "" ]]; then
+	echo "Error : Filter Keyword is required..."	
+	echo "Usage : $0 [src_dir] <filter_key1> [filter_key2] ... [dst_dir] "	
+else
+	if [[ "$dst_dir" == "" ]]; then
+		find $src_dir -type f $search_keywords
+	else
+		echo find $src_dir -type f $search_keywords -exec cp {} $dst_dir \;
+		find $src_dir -type f $search_keywords -exec cp {} $dst_dir \;
+	fi
+fi
+

@@ -1,0 +1,616 @@
+#include <string.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <dbus/dbus.h>
+#include <config.h>
+#include <dbus/dbus.h>
+#include <dbus/dbus-mainloop.h>
+#include <syslog.h>
+
+#ifndef LOG_TAG
+#define LOG_TAG "dbusTest"
+#endif
+
+/*
+
+static DBusMessage* msg;
+static DBusConnection* conn;
+static DBusError err;
+static DBusPendingCall* pending;
+static DBusLoop *loop;
+const char *path = "/boot/testfile1min1.mp3";
+unsigned int type = 0;
+*/
+typedef struct
+{
+  DBusLoop *loop;
+  DBusConnection *connection;
+} CData;
+
+
+static DBusHandlerResult TestPathMessageFunction(DBusConnection *t_pConnection, DBusMessage *t_pMessage, void *t_pUserData)
+{
+#if 0
+    DBusHandlerResult dbResult = DBUS_HANDLER_RESULT_HANDLED;
+    syslog(LOG_DEBUG,"Test app path function");
+
+	printf("TestApp : PathMessage function called \n");
+    if (dbus_message_is_signal(t_pMessage, "name.testipc.calling", "ipcActivityLaunched")) {
+        printf("TestApp_received: Activity launched successfully signal \n");
+        syslog(LOG_DEBUG,"TestApp_received: Activity launched signal");
+    }
+    else if (dbus_message_is_signal(t_pMessage, "name.testipc.calling", "ipcActivityLaunchFailed")) {
+        printf("TestApp_received: Activity launch failed signal\n");
+        syslog(LOG_DEBUG,"TestApp_received: Activity launch failed signal");
+    }
+    else if (dbus_message_is_signal(t_pMessage, "name.testipc.calling", "ipcAppStopeed")) {
+        printf("TestApp_received : App stopped successfully signal\n");
+        syslog(LOG_DEBUG,"TestApp_received: App stopped successfully signal");
+    }
+    else if (dbus_message_is_signal(t_pMessage, "name.testipc.calling", "ipcUnableToStopApp")) {
+        printf("TestApp_received : App stop failed signal\n");
+        syslog(LOG_DEBUG,"TestApp_received: App stop failed signal");
+    }
+    else if (dbus_message_is_signal(t_pMessage, "name.testipc.calling", "ipcKeyEventSent")) {
+        printf(" TestApp_received :key event sent signal \n");
+        syslog(LOG_DEBUG,"TestApp_received: key event sent signal");
+    }
+    else if (dbus_message_is_signal(t_pMessage, "name.testipc.calling", "ipcKeyEventFailed")) {
+        printf(" TestApp_received :key event send failed signal \n");
+        syslog(LOG_DEBUG,"TestApp_received: key event send failed signal");
+    }
+    else if (dbus_message_is_signal(t_pMessage, "name.testipc.calling", "ipcPackageRunning")) {
+        printf("TestApp_received : App status running signal\n");
+        syslog(LOG_DEBUG,"TestApp_received: App status running signal");
+    }
+    else if (dbus_message_is_signal(t_pMessage, "name.testipc.calling", "ipcPackageNotRunning")) {
+        printf("TestApp_received : App status not running signal \n");
+        syslog(LOG_DEBUG,"TestApp_received: App status not running signal");
+    }
+    else if (dbus_message_is_signal(t_pMessage, "name.testipc.calling", "ipcEventBroadcasted")) {
+        printf("TestApp_received : Event broadcasted  \n");
+        syslog(LOG_DEBUG,"TestApp_received: Event brodacasted");
+    }
+    else if (dbus_message_is_signal(t_pMessage, "name.testipc.calling", "ipcEventBroacastFailed")) {
+        printf("TestApp_received : Event broadcast failed \n");
+        syslog(LOG_DEBUG,"TestApp_received: Event Broadcast failed");
+    }
+    //TODO: MonitoringEvent
+
+    else if (dbus_message_is_signal(t_pMessage, "name.testipc.calling", "ipcScreenRepositioned")) {
+        printf("TestApp_received : Screen repositioned\n");
+        syslog(LOG_DEBUG,"TestApp_received : Screen repositioned");
+    }
+    else if (dbus_message_is_signal(t_pMessage, "name.testipc.calling", "ipcScreenRepositionFailed")) {
+        printf("TestApp_received : Screen reposition failed \n");
+        syslog(LOG_DEBUG,"TestApp_received : Screen reposition failed");
+    }
+    else if (dbus_message_is_signal(t_pMessage, "name.testipc.calling", "ipcAndroidLaunched")) {
+        printf("TestApp_received : Android Screen launched \n");
+        syslog(LOG_DEBUG,"TestApp_received : Android Screen Launched");
+    }
+    else if (dbus_message_is_signal(t_pMessage, "name.testipc.calling", "ipcAndroidClosed")) {
+        printf("TestApp_received : Android Screen closed\n");
+        syslog(LOG_DEBUG,"TestApp_received : Android Screen closed");
+    }
+    else if (dbus_message_is_signal(t_pMessage, "name.testipc.calling", "ipcERROR")) {
+        printf("TestApp_received : IPC Error signal\n");
+        syslog(LOG_DEBUG,"TestApp_received: IPC Error signal");
+    }
+    else {
+        printf("TestApp_received : UNKNOWN RESPONSE\n");
+        syslog(LOG_DEBUG,"TestApp_received : UNKNOWN RESPONSE");
+    }
+	return dbResult;
+#endif
+}
+
+static DBusObjectPathVTable CallbackVtable = {NULL, TestPathMessageFunction, NULL,};
+
+dbus_bool_t AddWatch(DBusWatch *t_pWatch, void *t_pData)
+{
+    CData *pCd = (CData*)t_pData;
+
+    return _dbus_loop_add_watch (pCd->loop, t_pWatch);
+}
+
+void RemoveWatch(DBusWatch *t_pWatch, void *t_pData)
+{
+    CData *pCd = (CData*)t_pData;
+
+    _dbus_loop_remove_watch (pCd->loop, t_pWatch);
+}
+
+void ToggleWatch(DBusWatch *t_pWatch, void *t_pData)
+{
+    CData *pCd = (CData*)t_pData;
+
+    _dbus_loop_toggle_watch (pCd->loop, t_pWatch);
+}
+
+dbus_bool_t AddTimeout(DBusTimeout *t_pTimeout, void *t_pData)
+{
+    CData *pCd = (CData*)t_pData;
+
+    return _dbus_loop_add_timeout (pCd->loop, t_pTimeout);
+}
+
+void RemoveTimeout (DBusTimeout *t_pTimeout, void *t_pData)
+{
+    CData *pCd = (CData*)t_pData;
+
+    _dbus_loop_remove_timeout (pCd->loop, t_pTimeout);
+}
+
+void DispatchStatusFunction (DBusConnection *t_pConnection, DBusDispatchStatus t_NewStatus, void *t_pData)
+{
+    DBusLoop *pLoop = (DBusLoop*)t_pData;
+
+    if (t_NewStatus != DBUS_DISPATCH_COMPLETE)
+    {
+        while (!_dbus_loop_queue_dispatch (pLoop, t_pConnection))
+        _dbus_wait_for_memory ();
+    }
+}
+
+void CDataFree(void *t_pData)
+{
+    CData *pCd = (CData*)t_pData;
+
+    dbus_connection_unref (pCd->connection);
+    _dbus_loop_unref (pCd->loop);
+
+    dbus_free (pCd);
+}
+
+CData* CDataNew(DBusLoop *t_pLoop, DBusConnection *t_pConnection)
+{
+    CData *pCd;
+
+    pCd = dbus_new0 (CData, 1);
+    if (pCd == NULL)
+        return NULL;
+
+    pCd->loop = t_pLoop;
+    pCd->connection = t_pConnection;
+
+    dbus_connection_ref (pCd->connection);
+    _dbus_loop_ref (pCd->loop);
+
+    return pCd;
+}
+
+dbus_bool_t TestConnectionSetup(DBusLoop *t_pLoop, DBusConnection *t_pConnection)
+{
+    CData *pCd;
+
+    pCd = NULL;
+
+    dbus_connection_set_dispatch_status_function (t_pConnection, DispatchStatusFunction, t_pLoop, NULL);
+
+    pCd = CDataNew (t_pLoop, t_pConnection);
+
+    if (pCd == NULL)
+        goto NoMemory;
+
+    if (!dbus_connection_set_watch_functions (t_pConnection, AddWatch, RemoveWatch, ToggleWatch, pCd, CDataFree))
+        goto NoMemory;
+
+    pCd = CDataNew (t_pLoop, t_pConnection);
+    if (pCd == NULL)
+        goto NoMemory;
+
+    if (!dbus_connection_set_timeout_functions (t_pConnection, AddTimeout, RemoveTimeout, NULL, pCd, CDataFree))
+        goto NoMemory;
+
+    if (dbus_connection_get_dispatch_status (t_pConnection) != DBUS_DISPATCH_COMPLETE)
+    {
+        if (!_dbus_loop_queue_dispatch (t_pLoop, t_pConnection))
+            goto NoMemory;
+    }
+
+    return TRUE;
+
+NoMemory:
+
+    if (pCd)
+        CDataFree (pCd);
+
+    dbus_connection_set_dispatch_status_function (t_pConnection, NULL, NULL, NULL);
+    dbus_connection_set_watch_functions (t_pConnection, NULL, NULL, NULL, NULL, NULL);
+    dbus_connection_set_timeout_functions (t_pConnection, NULL, NULL, NULL, NULL, NULL);
+
+    return FALSE;
+}
+
+void TestConnectionShutdown(DBusConnection *t_pConnection)
+{
+    if (!dbus_connection_set_watch_functions (t_pConnection, NULL, NULL, NULL, NULL, NULL))
+        _dbus_assert_not_reached ("setting watch functions to NULL failed");
+
+    if (!dbus_connection_set_timeout_functions (t_pConnection, NULL, NULL, NULL, NULL, NULL)){
+       _dbus_assert_not_reached ("setting timeout functions to NULL failed");
+        }
+    dbus_connection_set_dispatch_status_function (t_pConnection, NULL, NULL, NULL);
+}
+
+void getMessage(int choice) {
+
+    if(choice == 1){
+
+        msg = dbus_message_new_method_call(NULL, // target for the method call
+                                       "/org/Medallion/DBus", // object to call on
+                                       "org.Medallion.DBus.SERVICEMGR", // interface to call on
+                                       "ipcSendKeyEvent"); // method name
+        if (NULL == msg) {
+            fprintf(stderr, "TestApp :Message Null\n");
+            exit(1);
+        }
+    }
+    else if (choice == 2) {
+        msg = dbus_message_new_method_call(NULL, // target for the method call
+                                       "/org/Medallion/DBus", // object to call on
+                                       "org.Medallion.DBus.SERVICEMGR", // interface to call on
+                                       "ipcBroadcastEvent"); // method name
+        if (NULL == msg) {
+            fprintf(stderr, "TestApp :Message Null\n");
+            exit(1);
+        }
+    }
+    else if (choice == 3) {
+
+        msg = dbus_message_new_method_call(NULL, // target for the method call
+                                       "/org/Medallion/DBus", // object to call on
+                                       "org.Medallion.DBus.SERVICEMGR", // interface to call on
+                                       "ipcLaunchApp"); // method name
+        if (NULL == msg) {
+            fprintf(stderr, "TestApp :Message Null\n");
+            exit(1);
+        }
+    }
+    else if (choice == 4) {
+    msg = dbus_message_new_method_call(NULL, // target for the method call
+                                       "/org/Medallion/DBus", // object to call on
+                                       "org.Medallion.DBus.SERVICEMGR", // interface to call on
+                                       "ipcStopApp"); // method name
+        if (NULL == msg) {
+            fprintf(stderr, "TestApp :Message Null\n");
+            exit(1);
+        }
+
+    }
+    else if (choice == 5) {
+
+    msg = dbus_message_new_method_call(NULL, // target for the method call
+                                       "/org/Medallion/DBus", // object to call on
+                                       "org.Medallion.DBus.SERVICEMGR", // interface to call on
+                                       "ipcAppRunningStatus"); // method name
+        if (NULL == msg) {
+            fprintf(stderr, "TestApp :Message Null\n");
+            exit(1);
+        }
+    }
+    else if (choice == 6) {
+        msg = dbus_message_new_method_call(NULL, // target for the method call
+                                       "/org/Medallion/DBus", // object to call on
+                                       "org.Medallion.DBus.SERVICEMGR", // interface to call on
+                                       "ipcMediaMonitor"); // method name
+        if (NULL == msg) {
+            fprintf(stderr, "TestApp :Message Null\n");
+            exit(1);
+        }
+    }
+    else if (choice == 7) {
+    printf("HERE");
+    msg = dbus_message_new_method_call(NULL, // target for the method call
+                                       "/org/Medallion/DBus", // object to call on
+                                       "org.Medallion.DBus.SERVICEMGR", // interface to call on
+                                       "ipcScreenReposition"); // method name
+        if (NULL == msg) {
+            fprintf(stderr, "TestApp :Message Null\n");
+            exit(1);
+        }
+    }
+    else if(choice == 8){
+        msg = dbus_message_new_method_call(NULL, // target for the method call
+                                       "/org/Medallion/DBus", // object to call on
+                                       "org.Medallion.DBus.SERVICEMGR", // interface to call on
+                                       "ipcLaunchAndroid"); // method name
+        if (NULL == msg) {
+            fprintf(stderr, "TestApp :Message Null\n");
+            exit(1);
+        }
+    }
+    else if(choice == 9){
+        msg = dbus_message_new_method_call(NULL, // target for the method call
+                                       "/org/Medallion/DBus", // object to call on
+                                       "org.Medallion.DBus.SERVICEMGR", // interface to call on
+                                       "ipcCloseAndroid"); // method name
+        if (NULL == msg) {
+            fprintf(stderr, "TestApp :Message Null\n");
+            exit(1);
+        }
+    }
+    else if(choice == 10){
+        msg = dbus_message_new_method_call(NULL, // target for the method call
+                                       "/org/Medallion/DBus", // object to call on
+                                       "org.Medallion.DBus.SERVICEMGR", // interface to call on
+                                       "ipcSendAndroidMediaEvent"); // method name
+        if (NULL == msg) {
+            fprintf(stderr, "TestApp :Message Null\n");
+            exit(1);
+        }
+    }
+    else if(choice == 11){
+        msg = dbus_message_new_method_call(NULL, // target for the method call
+                                       "/org/Medallion/DBus", // object to call on
+                                       "org.Medallion.DBus.SERVICEMGR", // interface to call on
+                                       "ipcLocationMonitoring"); // method name
+        if (NULL == msg) {
+            fprintf(stderr, "TestApp :Message Null\n");
+            exit(1);
+        }
+    }
+    else if(choice == 12){
+        msg = dbus_message_new_method_call(NULL, // target for the method call
+                                       "/org/Medallion/DBus", // object to call on
+                                       "org.Medallion.DBus.SERVICEMGR", // interface to call on
+                                       "ipcGetLocation"); // method name
+        if (NULL == msg) {
+            fprintf(stderr, "TestApp :Message Null\n");
+            exit(1);
+        }
+    }
+    else {
+        printf("Invalid choice\n");
+    }
+}
+void freeMessage() {
+    // free message
+    dbus_message_unref(msg);
+    dbus_connection_flush(conn);
+}
+void sendMessage(){
+
+    dbus_message_set_destination (msg, "org.Medallion.DBus.SERVICEMGR");
+
+    if(dbus_connection_send (conn, msg, NULL) == TRUE) {
+       syslog(LOG_DEBUG,"TestApp :sent successfully");
+       printf("TestApp :Sent successfully\n");
+    }
+    else {
+        printf("TestApp :Fail to send\n");
+        syslog(LOG_DEBUG,"TestApp :fail to send");
+    }
+    freeMessage();
+}
+
+int main(void)
+{
+    int ret;
+    struct stat sb;
+    void *pData;
+	char str[200];
+    char *ptr = malloc(200);
+    int task = 0;
+    int keycode;
+	int c = '\n';
+
+    printf("TestApp :Calling remote method \n");
+
+    // initialiset the errors
+    dbus_error_init(&err);
+    printf("TestApp :Error initialized \n");
+
+    while (stat("/dev/socket/dbus", &sb)) {
+        printf("TestApp :Failed to stat /dev/socket/dbus\n");
+        usleep(500000);
+    }
+    usleep(500000);
+
+    // connect to the system bus and check for errors
+    conn = dbus_bus_get(DBUS_BUS_STARTER , &err);
+    if (dbus_error_is_set(&err)) {
+       fprintf(stderr, "TestApp :Connection Error (%s)\n", err.message);
+       dbus_error_free(&err);
+    }
+    if (NULL == conn) {
+       printf("TestApp: connection null");
+       exit(1);
+    }
+
+	loop = _dbus_loop_new();
+
+	TestConnectionSetup(loop, conn);
+
+       if (!dbus_connection_register_object_path (conn, "/org/Medallion/DBus", &CallbackVtable, (void*) 0xdeadbeef))
+        {
+                fprintf (stderr, "TestApp :Error in dbus_connection_register_object_path\n");
+        }
+
+        if (!dbus_connection_get_object_path_data (conn, "/org/Medallion/DBus", &pData))
+        {
+                fprintf (stderr, "TestApp :Error in dbus_connection_get_object_path_data\n");
+        }
+
+        if (pData != (void*) 0xdeadbeef)
+        {
+                fprintf (stderr, "TestApp :dbus_connection_get_object_path_data() doesn't seem to work right\n");
+			syslog(LOG_DEBUG,"ERROR");
+        }
+
+	// request our name on the bus
+    ret = dbus_bus_request_name(conn, "name.testipc.calling", DBUS_NAME_FLAG_REPLACE_EXISTING , &err);
+    if (dbus_error_is_set(&err)) {
+       fprintf(stderr, "TestApp :Name Error (%s)\n", err.message);
+       dbus_error_free(&err);
+    }
+    if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != ret) {
+	printf("TestApp :Primary owner failed\n");
+    exit(1);
+    }
+int pid;
+switch( pid = fork()){
+//default:
+// _dbus_loop_run (loop);
+ //break;
+case 0 :
+
+    while(1) {
+            usleep(500000);
+			printf("\n--------------CHOICES--------- \n");
+            printf("\t1. Send Key Event\n\t2. BroadCast Event\n\t3. Launch Application\n\t4. Stop Application\n");
+            printf("\t5. Get running status of an application\n\t6. Monitor Android media events\n");
+            printf("\t7. Move Screen\n\t8. Show Android screen\n\t9. Hide Android screen\n");
+            printf("\t10. Send Media Event\n\t11. Location Monitoring\n\t12.Get current Location\n\t13.Exit\n");
+            printf("--------------------------------- \n");
+
+            printf("\nEnter your choice: ");
+			scanf(" %d", &c);
+
+			if (c == 13)
+                break;
+
+			switch(c) {
+                case 1: //Key Event send
+
+			        //TODO
+                    getMessage(c);
+                    //user input for key event
+                    printf("\nEnter Keycode: ");
+			        scanf(" %d", &keycode);
+
+                    //msg formation and sending
+	                type = keycode;
+                	dbus_message_append_args(msg, DBUS_TYPE_UINT32, &type, DBUS_TYPE_INVALID);
+                    sendMessage();
+			        break;
+
+                case 2: // intent braodcasting  format   "android.intent.action.BATTERY_LOW"
+#if 1
+                   getMessage(c);
+                    //user input for Package name
+                    printf("\nEnter intent to Broadcast: ");
+                    scanf(" %[^\n]", str);
+                    ptr = &str;
+                   dbus_message_append_args(msg, DBUS_TYPE_STRING,&ptr, DBUS_TYPE_INVALID);
+                   sendMessage();
+#endif
+			        break;
+
+			    case 3: //App launch
+
+                    //TODO
+                    getMessage(c);
+                    //user input for Package name
+			        printf("\nEnter package name to launch: ");
+			        scanf(" %[^\n]", str);
+
+                    //char *ptr = malloc(200);
+                    ptr = &str;
+			        //TODO
+                    //char *package = str;
+                    dbus_message_append_args(msg, DBUS_TYPE_STRING, &ptr, DBUS_TYPE_INVALID);
+                    sendMessage();
+                    //printf("Message sent \n");
+			        break;
+
+			    case 4: //stop app
+			        //TODO
+                    getMessage(c);
+                    //user input for Package name
+			        printf("\nEnter package name to stop: ");
+			        scanf(" %[^\n]", str);
+                    ptr = &str;
+			        //TODO
+                    //char *package = str;
+                    dbus_message_append_args(msg, DBUS_TYPE_STRING, &ptr, DBUS_TYPE_INVALID);
+                    sendMessage();
+			        break;
+
+			    case 5: //get running status of app
+                    //TODO
+                    getMessage(c);
+
+                    //user input for package name
+			        printf("\nEnter package name to get the running status: ");
+			        scanf(" %[^\n]", str);
+                    ptr = &str;
+			        //TODO
+                    //char *package = str;
+                    dbus_message_append_args(msg, DBUS_TYPE_STRING, &ptr, DBUS_TYPE_INVALID);
+                    sendMessage();
+			        break;
+                case 6:
+                    getMessage(c);
+
+                    //user input for package name
+                    //printf("Media event monitoring started\n ");
+
+                    //TODO
+                    //char *package = str;
+                   // dbus_message_append_args(msg, DBUS_TYPE_STRING, &str, DBUS_TYPE_INVALID);
+                    sendMessage();
+                    printf("Media event monitoring started\n ");
+                    break;
+                case 7:
+
+                    getMessage(c);
+                    printf("Get message called\n");
+                    int l, t;
+                    printf("\nEnter left offset of Android screen : ");
+                    scanf(" %d", &l);
+                    printf("\nEnter top offset of Android screen : ");
+                    scanf(" %d", &t);
+                    dbus_message_append_args(msg, DBUS_TYPE_UINT32, &l,DBUS_TYPE_UINT32, &t, DBUS_TYPE_INVALID);
+                    sendMessage();
+                    break;
+                case 8: //Launch Android
+                    getMessage(c);
+                    sendMessage();
+                    break;
+                case 9: //close android
+                    getMessage(c);
+                    sendMessage();
+                    break;
+                case 10:
+                    getMessage(c);
+                    printf("\nEnter media package name or to end type null: ");
+                    scanf(" %[^\n]", str);
+                    ptr = &str;
+
+                    printf("\nMedia events:-\n\t1. pause\n\t2. play\n\t3. stop\nEnter event choice no.: ");
+                    scanf(" %d", &keycode);
+                    dbus_message_append_args(msg, DBUS_TYPE_STRING, &ptr,DBUS_TYPE_UINT32, &keycode, DBUS_TYPE_INVALID);
+                    sendMessage();
+                    break;
+                case 11:
+                    getMessage(c);
+                    sendMessage();
+                    printf("Location monitoring started\n ");
+
+                    break;
+                case 12:
+                    getMessage(c);
+                    sendMessage();
+                    printf("Get Location\n ");
+
+                    break;
+			    default:
+                printf("In Default\n");
+			        break;
+            }
+    }
+ exit(0);
+ case -1:
+    syslog(LOG_DEBUG,"FORK ERROR");
+    exit(1);
+ break;
+ default:
+_dbus_loop_run (loop);
+ break;
+}
+	return 0;
+}

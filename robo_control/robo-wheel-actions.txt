@@ -1,0 +1,19 @@
+1. right-wheel
+stop => p0=x, p1=x
+forword => p0=f, p1=x
+backword => p0=x, p1=f
+
+duty_support = 2ms/24ms - 24ms/24ms
+
+
+2. left-wheel
+stop => p2=x, p3=x
+forword => p2=f, p3=x
+backword => p2=x, p3=f
+
+duty_support = 2ms/24ms - 24ms/24ms
+
+r		l
+---------------
+4700000		5000000
+

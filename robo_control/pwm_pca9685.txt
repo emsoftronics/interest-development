@@ -1,0 +1,32 @@
+cd /sys/class/pwm/pwmchip0/
+echo 0 > export 
+cd pwm0
+capture     duty_cycle  export      period      power       uevent
+device      enable      npwm        polarity    subsystem   unexport
+
+
+
+
+
+
+
+# cd /sys/class/gpio/
+# ls
+export       gpiochip0    gpiochip128  gpiochip496  unexport
+# echo 17 > export 
+# ls
+export       gpio17       gpiochip0    gpiochip128  gpiochip496  unexport
+# cd gpio17/
+# ls
+active_low  direction   power       uevent
+device      edge        subsystem   value
+# echo in > direction 
+# cat value 
+0
+# cat value 
+1
+# cat value 
+1
+# cat value 
+0
+

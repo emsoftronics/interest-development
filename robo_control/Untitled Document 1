@@ -1,0 +1,48 @@
+/media/jagdish/JP1/embeddedRnd/buildroot/output/host/bin/arm-linux-
+/media/jagdish/JP1/embeddedRnd/buildroot/output/build/linux-custom
+/media/jagdish/JP1/embeddedRnd/buildroot/output/host/bin/arm-buildroot-linux-uclibcgnueabihf-
+/media/jagdish/JP1/embeddedRnd/buildroot/output/target
+device ADS1115_ADC
+slave address : 0x48
+
+Address Pointer
+Register
+address
+pointer
+00 : Conversion
+register
+01 : Config
+register
+10 : Lo_thresh
+register
+11 : Hi_thresh
+register
+
+Conversion
+Register
+(P[1:0]= 0h) [reset= 0000h]
+
+16 bit conversion result
+
+
+Config
+Register
+(P[1:0]= 1h) [reset= 8583h]
+The 16-bit
+Config
+register
+is used
+to control
+the operating
+mode,
+input
+selection,
+data
+rate,
+full-scale
+range,
+and
+comparator
+modes.
+
+
