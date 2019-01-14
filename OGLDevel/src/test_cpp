@@ -1,0 +1,30 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename:  test.cpp
+ *
+ *    Description:
+ *
+ *        Version:  1.0
+ *        Created:  Sunday 13 January 2019 06:11:15  IST
+ *       Revision:  1.1
+ *       Compiler:  gcc
+ *
+ *         Author:  Jagdish Prajapati (JP), prajapatijagdish22@gmail.com
+ *        Company:  Emsoftronic
+ *
+ * =====================================================================================
+ */
+
+#include <imageloader/image.h>
+#include <iostream>
+#include <cstdio>
+
+int main(int argc, char **argv)
+{
+    Image image(argv[1], 4, false);
+    std::cout << "width = " << image.getWidth() << std::endl;
+    std::cout << "height = " <<image.getHeight() << std::endl;
+    std::cout << "Channels = " <<image.getChannelCount() << std::endl;
+    return 0;
+}
