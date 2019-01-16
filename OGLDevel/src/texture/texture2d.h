@@ -35,20 +35,26 @@ class Texture2D
         GLuint Wrap_S; // Wrapping mode on S axis
         GLuint Wrap_T; // Wrapping mode on T axis
         GLboolean imageTexture;
+        GLboolean Fliped;
 
     public:
         // Constructor (sets default texture modes)
         Texture2D(GLuint width, GLuint height, GLuint internalFormat = GL_RGB,
             GLuint wrap_S = GL_CLAMP_TO_EDGE, GLuint wrap_T = GL_CLAMP_TO_EDGE);
 
-        Texture2D(const char *imagePath, GLuint internalFormat = GL_RGB,
+        Texture2D(const char *imagePath, GLboolean fliped = GL_FALSE, GLuint internalFormat = GL_RGB,
             GLuint wrap_S = GL_CLAMP_TO_EDGE, GLuint wrap_T = GL_CLAMP_TO_EDGE);
         inline GLuint getID(void) const { return ID;}
         inline GLuint getWidth(void) const { return Width;}
         inline GLuint getHeight(void) const { return Height;}
         inline GLuint getInternalFormat(void) const { return Internal_Format;}
         inline GLboolean isImageTexture(void) const { return imageTexture;}
-        inline void bind(void) const { glBindTexture(GL_TEXTURE_2D, this->ID);}
+        inline GLboolean isFliped(void) const { return Fliped;}
+        inline void bind(GLuint var_location = 0) const {
+            glActiveTexture(GL_TEXTURE0 + var_location);
+            glBindTexture(GL_TEXTURE_2D, this->ID);
+        }
+
         ~Texture2D(void)
         { glBindTexture(GL_TEXTURE_2D, 0);
           glDeleteTextures(1, &this->ID);
