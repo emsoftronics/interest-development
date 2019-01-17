@@ -49,6 +49,23 @@ class Vertex
             glDeleteBuffers(1, &this->VBO_ID);
             if (EBOLength) glDeleteBuffers(1, &this->EBO_ID);
         }
+
+        inline void updateVBO(GLuint start_index, GLuint update_element_count, GLfloat *vbuffer)
+        {
+            if ((int)VBOLength - (int)start_index - (int)update_element_count < 0 ) return;
+            glBindBuffer(GL_ARRAY_BUFFER, this->VBO_ID);
+            glBufferSubData(GL_ARRAY_BUFFER, (GLintptr)(start_index*sizeof(GLfloat)),
+                    (GLsizeiptr)(update_element_count* sizeof(GLfloat)), vbuffer);
+        }
+
+        inline void updateEBO(GLuint start_index, GLuint update_element_count, GLuint *vbuffer)
+        {
+            if ((int)EBOLength - (int)start_index - (int)update_element_count < 0 ) return;
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO_ID);
+            glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, (GLintptr)(start_index*sizeof(GLuint)),
+                    (GLsizeiptr)(update_element_count* sizeof(GLuint)), vbuffer);
+        }
+
         inline GLuint getVBO(void) const {return VBO_ID;}
         inline GLuint getEBO(void) const {return EBO_ID;}
         inline GLuint getVBOLength(void) const {return VBOLength;}

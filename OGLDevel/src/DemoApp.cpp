@@ -38,6 +38,7 @@ class Demo : public Canvas
            mVertex = NULL;
         }
         void draw(void);
+        void update (float deltaTime );
         void loadShader(const char *vshader, const char *fshader, bool codebuffer = false)
         {
             mShader = new Shader(vshader, fshader, codebuffer);
@@ -81,6 +82,23 @@ const char *Demo::fshader =
       "  gl_FragColor = vec4 ( 1.0, 0.0, 0.0, 1.0 );\n"
       "}                                            \n";
 */
+
+void Demo::update (float deltaTime )
+{
+   static GLfloat var = 0;
+   static GLboolean flag = GL_FALSE;
+   GLfloat v[] = {0.3f, -0.7f, 0.0f};
+   v[0] += var;
+   v[1] -= var;
+   if (var < -0.5) flag = GL_FALSE;
+   if (var > 0.5) flag = GL_TRUE;
+   if (flag) var -= 0.01;
+   else var += 0.01;
+   mVertex->updateVBO(8,3,v);
+  // v[0] += deltaTime;
+  // mVertex->updateVBO(16,3,v);
+}
+
 void Demo::draw()
 {
     /*
@@ -127,6 +145,7 @@ void Demo::draw()
    glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, vIndices);
 //   glFinish();
     */
+
    mVertex->attachVBO((*mShader)("aPos"), 0, 3);
    mVertex->attachVBO((*mShader)("aColor"), 3, 3);
    mVertex->attachVBO((*mShader)("aTexCoord"), 6, 2);
@@ -135,7 +154,6 @@ void Demo::draw()
 
 int main ( int argc, char *argv[] )
 {
-
    Demo  demo("Hello Triangle", 600, 600);
    demo.loadShader("res/shaders/textureTest.vs", "res/shaders/textureTest.fs");
  //  demo.loadTexture("res/textures/container.jpg");
