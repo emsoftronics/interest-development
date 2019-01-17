@@ -45,6 +45,48 @@ class Vertex
             else EBOLength = 0;
         }
 
+        Vertex(GLuint vertex_count, GLfloat *v3Dbuffer, GLuint *ebuffer = NULL,
+                GLuint elength = 0, GLfloat *v2Dtexbuf = NULL, GLfloat *v3Dbuf1 = NULL,
+                GLfloat *v3Dbuf2 = NULL) : EBOLength(elength)
+        {
+            glGenBuffers(1, &this->VBO_ID);
+            if (ebuffer) glGenBuffers(1, &this->EBO_ID);
+            else EBO_ID = (GLuint)(-1);
+            VBOLength = vertex_count*3;
+            VBOLength += (v2Dtexbuf) ? (2*vertex_count) : 0;
+            VBOLength += (v3Dbuf1) ? (3*vertex_count) : 0;
+            VBOLength += (v3Dbuf2) ? (3*vertex_count) : 0;
+            Stride = 3 + ((v2Dtexbuf) ? 2 : 0) + ((v3Dbuf1) ? 3 : 0) + ((v3Dbuf1) ? 3 : 0);
+            glBindBuffer(GL_ARRAY_BUFFER, this->VBO_ID);
+            glBufferData(GL_ARRAY_BUFFER, VBOLength*sizeof(GLfloat), NULL, GL_STATIC_DRAW);
+            for (int i = 0; i < vertex_count; i++) {
+                glBufferSubData(GL_ARRAY_BUFFER, (GLintptr)(i*Stride*sizeof(GLfloat)),
+                        (GLsizeiptr)(3*sizeof(GLfloat)), &v3Dbuffer[i*3]);
+                if (v2Dtexbuf) {
+                    glBufferSubData(GL_ARRAY_BUFFER, (GLintptr)((3+i*Stride)*sizeof(GLfloat)),
+                            (GLsizeiptr)(2*sizeof(GLfloat)), &v2Dtexbuf[i*2]);
+                }
+
+                if (v3Dbuf1) {
+                    glBufferSubData(GL_ARRAY_BUFFER,
+                            (GLintptr)((3 + ((v2Dtexbuf) ? 2 : 0) + i*Stride)*sizeof(GLfloat)),
+                            (GLsizeiptr)(3*sizeof(GLfloat)), &v3Dbuf1[i*3]);
+                }
+
+                if (v3Dbuf2) {
+                    glBufferSubData(GL_ARRAY_BUFFER,
+                            (GLintptr)((3 + ((v2Dtexbuf) ? 2 : 0) + ((v3Dbuf1) ? 3 : 0) + i*Stride)*sizeof(GLfloat)),
+                            (GLsizeiptr)(3*sizeof(GLfloat)), &v3Dbuf2[i*3]);
+                }
+            }
+
+            if (ebuffer) {
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO_ID);
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER, EBOLength*sizeof(GLuint), ebuffer, GL_STATIC_DRAW);
+            }
+            else EBOLength = 0;
+        }
+
         ~Vertex(void) {
             glDeleteBuffers(1, &this->VBO_ID);
             if (EBOLength) glDeleteBuffers(1, &this->EBO_ID);

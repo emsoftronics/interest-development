@@ -50,6 +50,7 @@ class Demo : public Canvas
 
         void loadVertex(void)
         {
+            /*
               GLfloat vVertices[] = {
         // positions          // colors           // texture coords
          0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
@@ -64,24 +65,15 @@ class Demo : public Canvas
             //0, 1, 3, // first triangle
             //1, 2, 3  // second triangle
             };
-            mVertex = new Vertex( vVertices, 8, sizeof(vVertices)/sizeof(GLfloat), vIndices, 6);
+            */
+            GLfloat *vVertices = NULL;
+            GLfloat *texCoord = NULL;
+            GLfloat *color = NULL;
+            GLuint *vIndices = NULL;
+            GLuint nv = esGenCube(1.0f, &vVertices, &color, &texCoord, &vIndices);
+            mVertex = new Vertex( nv, vVertices, vIndices, nv, texCoord, color);
         }
 };
-/*
-const char *Demo::vshader =
-      "attribute vec4 vPosition;    \n"
-      "void main()                  \n"
-      "{                            \n"
-      "   gl_Position = vPosition;  \n"
-      "}                            \n";
-
-const char *Demo::fshader =
-      "precision mediump float;\n"
-      "void main()                                  \n"
-      "{                                            \n"
-      "  gl_FragColor = vec4 ( 1.0, 0.0, 0.0, 1.0 );\n"
-      "}                                            \n";
-*/
 
 void Demo::update (float deltaTime )
 {
@@ -94,9 +86,7 @@ void Demo::update (float deltaTime )
    if (var > 0.5) flag = GL_TRUE;
    if (flag) var -= 0.01;
    else var += 0.01;
-   mVertex->updateVBO(8,3,v);
-  // v[0] += deltaTime;
-  // mVertex->updateVBO(16,3,v);
+   //mVertex->updateVBO(8,3,v);
 }
 
 void Demo::draw()
@@ -147,8 +137,8 @@ void Demo::draw()
     */
 
    mVertex->attachVBO((*mShader)("aPos"), 0, 3);
-   mVertex->attachVBO((*mShader)("aColor"), 3, 3);
-   mVertex->attachVBO((*mShader)("aTexCoord"), 6, 2);
+   mVertex->attachVBO((*mShader)("aColor"), 5, 3);
+   mVertex->attachVBO((*mShader)("aTexCoord"), 3, 2);
    mVertex->draw(GL_TRIANGLES);
 }
 
