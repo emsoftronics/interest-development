@@ -20,6 +20,7 @@
 #include "common/esUtil.h"
 #include "shader/shader.h"
 #include "texture/texture2d.h"
+#include "vertex/vertex.h"
 
 
 class Demo : public Canvas
@@ -27,12 +28,14 @@ class Demo : public Canvas
     private:
         Shader *mShader;
         Texture2D *mTexture;
+        Vertex *mVertex;
 
     public:
         Demo (const char *title, int width, int height) : Canvas(title, width, height)
         {
            mShader = NULL;
            mTexture = NULL;
+           mVertex = NULL;
         }
         void draw(void);
         void loadShader(const char *vshader, const char *fshader, bool codebuffer = false)
@@ -43,6 +46,25 @@ class Demo : public Canvas
         }
         void loadTexture(const char *imagePath, GLboolean fliped = GL_FALSE)
         { mTexture = new Texture2D(imagePath, fliped);}
+
+        void loadVertex(void)
+        {
+              GLfloat vVertices[] = {
+        // positions          // colors           // texture coords
+         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left
+            };
+
+            GLuint vIndices[] = {
+            3,2,1,//1, 2, 3  // second triangle
+            3,0,1, //
+            //0, 1, 3, // first triangle
+            //1, 2, 3  // second triangle
+            };
+            mVertex = new Vertex( vVertices, 8, sizeof(vVertices)/sizeof(GLfloat), vIndices, 6);
+        }
 };
 /*
 const char *Demo::vshader =
@@ -61,6 +83,7 @@ const char *Demo::fshader =
 */
 void Demo::draw()
 {
+    /*
    int ret = 0;
    GLfloat vVertices[] = {
         // positions          // colors           // texture coords
@@ -76,6 +99,7 @@ void Demo::draw()
         //0, 1, 3, // first triangle
         //1, 2, 3  // second triangle
     };
+    */
    //ret = esGenSphere(100,0.5f, &vVertices, 0,0,&vIndices);
    //ret = esGenCube(1.0f, &vVertices, 0,0,&vIndices);
    // Set the viewport
@@ -86,8 +110,8 @@ void Demo::draw()
 
    mTexture->bind((*mShader)("texture1"));
    // Use the program object
-   glUseProgram ( mShader->ID);
-
+   mShader->use();
+/*
    // Load the vertex data
    glVertexAttribPointer ( (*mShader)("aPos"), 3, GL_FLOAT, GL_FALSE, 8* sizeof(GLfloat), vVertices);
    glEnableVertexAttribArray ( (*mShader)("aPos"));
@@ -102,6 +126,11 @@ void Demo::draw()
    //glDrawArrays ( GL_TRIANGLES, 0, 121 );
    glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, vIndices);
 //   glFinish();
+    */
+   mVertex->attachVBO((*mShader)("aPos"), 0, 3);
+   mVertex->attachVBO((*mShader)("aColor"), 3, 3);
+   mVertex->attachVBO((*mShader)("aTexCoord"), 6, 2);
+   mVertex->draw(GL_TRIANGLES);
 }
 
 int main ( int argc, char *argv[] )
@@ -113,6 +142,7 @@ int main ( int argc, char *argv[] )
    demo.loadTexture("res/textures/awesomeface.png", GL_TRUE);
  // demo.loadTexture("res/textures/matrix.jpg", GL_TRUE);
  //  demo.loadTexture("res/textures/container2.png");
+   demo.loadVertex();
 
    demo.refreshForever();
    return 0;

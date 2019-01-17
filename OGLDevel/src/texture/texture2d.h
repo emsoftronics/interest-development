@@ -50,8 +50,8 @@ class Texture2D
         inline GLuint getInternalFormat(void) const { return Internal_Format;}
         inline GLboolean isImageTexture(void) const { return imageTexture;}
         inline GLboolean isFliped(void) const { return Fliped;}
-        inline void bind(GLuint var_location = 0) const {
-            glActiveTexture(GL_TEXTURE0 + var_location);
+        inline void bind(GLuint tex_varloc_id = 0) const {
+            glActiveTexture(GL_TEXTURE0 + tex_varloc_id);
             glBindTexture(GL_TEXTURE_2D, this->ID);
         }
 
