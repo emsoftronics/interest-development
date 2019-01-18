@@ -46,11 +46,11 @@ class Canvas
         Canvas(const char* title, GLint width, GLint height, BufferType flags = WINDOW_RGB);
         void refreshOnce(void);
         void refreshForever(void);
-        virtual void handleKeyPress(unsigned char key);
-        virtual void update (float deltaTime );
-        virtual void draw (void) = 0;
 
     protected:
+        virtual void handleKeyPress(unsigned char key);
+        virtual void update (float totaltime );
+        virtual void draw (void) = 0;
         EGLBoolean createWindow(const char *title);
         EGLBoolean createEGLContext ( EGLNativeWindowType hWnd, EGLDisplay* eglDisplay,
                               EGLContext* eglContext, EGLSurface* eglSurface,

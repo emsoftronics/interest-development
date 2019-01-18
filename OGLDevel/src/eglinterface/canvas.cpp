@@ -73,13 +73,15 @@ void Canvas::handleKeyPress(unsigned char key)
     printf("Pressed key : %c\n", key);
 }
 
-void Canvas::update (float deltaTime )
+void Canvas::update (float totaltime )
 {
-   // printf("update something\n");
+   if (totaltime > 5.0) printf("update something\n");
 }
 
 void Canvas::refreshOnce(void)
 {
+    update(0);
+    draw();
     eglSwapBuffers(eglDisplay, eglSurface);
 }
 
@@ -99,7 +101,7 @@ void Canvas::refreshForever(void)
         deltatime = (float)(t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) * 1e-6);
         t1 = t2;
 
-        update(deltatime);
+        update(totaltime);
         draw();
         eglSwapBuffers(eglDisplay, eglSurface);
 
@@ -122,8 +124,8 @@ EGLBoolean Canvas::createWindow(const char *title)
     Atom wm_state;
     XWMHints hints;
     XEvent xev;
-    EGLConfig ecfg;
-    EGLint num_config;
+    //EGLConfig ecfg;
+    //EGLint num_config;
     Window win;
 
     /*

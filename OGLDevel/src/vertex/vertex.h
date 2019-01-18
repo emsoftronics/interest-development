@@ -59,7 +59,7 @@ class Vertex
             Stride = 3 + ((v2Dtexbuf) ? 2 : 0) + ((v3Dbuf1) ? 3 : 0) + ((v3Dbuf1) ? 3 : 0);
             glBindBuffer(GL_ARRAY_BUFFER, this->VBO_ID);
             glBufferData(GL_ARRAY_BUFFER, VBOLength*sizeof(GLfloat), NULL, GL_STATIC_DRAW);
-            for (int i = 0; i < vertex_count; i++) {
+            for (int i = 0; i < (int)vertex_count; i++) {
                 glBufferSubData(GL_ARRAY_BUFFER, (GLintptr)(i*Stride*sizeof(GLfloat)),
                         (GLsizeiptr)(3*sizeof(GLfloat)), &v3Dbuffer[i*3]);
                 if (v2Dtexbuf) {

@@ -21,7 +21,7 @@
 #include "shader/shader.h"
 #include "texture/texture2d.h"
 #include "vertex/vertex.h"
-
+#include <unistd.h>
 
 class Demo : public Canvas
 {
@@ -72,6 +72,10 @@ class Demo : public Canvas
             GLuint *vIndices = NULL;
             GLuint nv = esGenCube(1.0f, &vVertices, &color, &texCoord, &vIndices);
             mVertex = new Vertex( nv, vVertices, vIndices, nv, texCoord, color);
+            free(vVertices);
+            free(texCoord);
+            free(color);
+            free(vIndices);
         }
 };
 
@@ -152,7 +156,9 @@ int main ( int argc, char *argv[] )
  //  demo.loadTexture("res/textures/container2.png");
    demo.loadVertex();
 
-   demo.refreshForever();
+//   demo.refreshForever();
+    demo.refreshOnce();
+    sleep(5);
    return 0;
 }
 
