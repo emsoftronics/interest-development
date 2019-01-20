@@ -20,6 +20,10 @@
 #define __VERTEX_H__
 #include <GLES2/gl2.h>
 
+#ifndef NULL
+#define NULL ((void *)0)
+#endif
+
 class Vertex
 {
     private:
@@ -30,7 +34,7 @@ class Vertex
         GLuint EBOLength;
 
     public:
-        Vertex(GLfloat *vbuffer, GLuint stride, GLuint vlength, GLuint *ebuffer = NULL,
+        Vertex(GLfloat *vbuffer, GLuint stride, GLuint vlength, GLuint *ebuffer = (GLuint *)NULL,
                 GLuint elength = 0) : Stride(stride), VBOLength(vlength), EBOLength(elength)
         {
             glGenBuffers(1, &this->VBO_ID);
@@ -45,9 +49,9 @@ class Vertex
             else EBOLength = 0;
         }
 
-        Vertex(GLuint vertex_count, GLfloat *v3Dbuffer, GLuint *ebuffer = NULL,
-                GLuint elength = 0, GLfloat *v2Dtexbuf = NULL, GLfloat *v3Dbuf1 = NULL,
-                GLfloat *v3Dbuf2 = NULL) : EBOLength(elength)
+        Vertex(GLuint vertex_count, GLfloat *v3Dbuffer, GLuint *ebuffer = (GLuint *)NULL,
+                GLuint elength = 0, GLfloat *v2Dtexbuf = (GLfloat *)NULL, GLfloat *v3Dbuf1 = (GLfloat *)NULL,
+                GLfloat *v3Dbuf2 = (GLfloat *)NULL) : EBOLength(elength)
         {
             glGenBuffers(1, &this->VBO_ID);
             if (ebuffer) glGenBuffers(1, &this->EBO_ID);

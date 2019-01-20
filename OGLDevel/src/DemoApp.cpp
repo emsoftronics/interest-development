@@ -21,7 +21,11 @@
 #include "shader/shader.h"
 #include "texture/texture2d.h"
 #include "vertex/vertex.h"
+#include "geometry/geometry.h"
 #include <unistd.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 class Demo : public Canvas
 {
@@ -29,6 +33,11 @@ class Demo : public Canvas
         Shader *mShader;
         Texture2D *mTexture;
         Vertex *mVertex;
+        glm::mat4 uTranslate;
+        glm::mat4 uScale;
+        glm::mat4 uRotate;
+        glm::mat4 uView;
+        glm::mat4 uProjection;
 
     public:
         Demo (const char *title, int width, int height) : Canvas(title, width, height)
@@ -36,9 +45,18 @@ class Demo : public Canvas
            mShader = NULL;
            mTexture = NULL;
            mVertex = NULL;
+           uTranslate = glm::mat4(1.0);
+           uScale = glm::mat4(1.0);
+           uRotate = glm::mat4(1.0);
+           uProjection = glm::ortho(-(float)width*0.5f, (float)width*0.5f,
+                   -(float)height*0.5f, (float)height*0.5f, 10.0f, 1000.0f);
+            //uProjection = glm::perspective(glm::radians(15.0f), (float)width / (float)height, 0.1f, 1000.0f) * uProjection;
+           uView = glm::lookAt(/*cameraPos*/ glm::vec3(0.0, 0.0, -10.0f),
+                   /*cameraPos*/glm::vec3(0.0, 0.0, -10.0f) + /*cameraFront*/glm::vec3(-0.0, 0.0, -1.0f),
+                   /*cameraUp*/ glm::vec3(0.0, 1.0, 0.0f));
         }
         void draw(void);
-        void update (float deltaTime );
+        void update (float totalTime );
         void loadShader(const char *vshader, const char *fshader, bool codebuffer = false)
         {
             mShader = new Shader(vshader, fshader, codebuffer);
@@ -46,7 +64,7 @@ class Demo : public Canvas
             glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
         }
         void loadTexture(const char *imagePath, GLboolean fliped = GL_FALSE)
-        { mTexture = new Texture2D(imagePath, fliped);}
+        { mTexture = new Texture2D(imagePath, fliped, GL_RGB, GL_REPEAT, GL_REPEAT);}
 
         void loadVertex(void)
         {
@@ -66,6 +84,7 @@ class Demo : public Canvas
             //1, 2, 3  // second triangle
             };
             */
+            /*
             GLfloat *vVertices = NULL;
             GLfloat *texCoord = NULL;
             GLfloat *color = NULL;
@@ -76,21 +95,34 @@ class Demo : public Canvas
             free(texCoord);
             free(color);
             free(vIndices);
+            */
+            //mVertex = Geometry::loadCube();
+            //mVertex = Geometry::loadTriangle();
+            mVertex = Geometry::loadSquare();
         }
 };
 
-void Demo::update (float deltaTime )
+void Demo::update (float totalTime )
 {
-   static GLfloat var = 0;
-   static GLboolean flag = GL_FALSE;
-   GLfloat v[] = {0.3f, -0.7f, 0.0f};
-   v[0] += var;
-   v[1] -= var;
-   if (var < -0.5) flag = GL_FALSE;
-   if (var > 0.5) flag = GL_TRUE;
-   if (flag) var -= 0.01;
-   else var += 0.01;
-   //mVertex->updateVBO(8,3,v);
+    //uScale = glm::scale(glm::mat4(1.0),  glm::vec3(100.0));
+
+    //uRotate = glm::rotate(glm::mat4(1.0), glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    //uTranslate[4] = glm::vec4(0.0, 0.0, -0.5, 1.0);
+//    uTranslate = glm::translate(glm::mat4(1.0),  glm::vec3(0.0, 0.0, -300.0));
+
+    uView = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+    uProjection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
+    glClearDepthf(1.0f);
+   //glDisable(GL_DEPTH_TEST);
+   //glEnable(GL_DEPTH_TEST);
+   //glDisable(GL_BLEND);
+   GLboolean depth;
+//   glGetBooleanv(GL_DEPTH_TEST, &depth);
+//   printf ("GL_DEPTH_TEST = %d\n", depth);
+   //glDisable(GL_CULL_FACE);
+   //glFrontFace(GL_CW);
+   //glDepthMask(GL_TRUE);
+  // glDepthFunc(GL_LESS);
 }
 
 void Demo::draw()
@@ -115,11 +147,14 @@ void Demo::draw()
    //ret = esGenSphere(100,0.5f, &vVertices, 0,0,&vIndices);
    //ret = esGenCube(1.0f, &vVertices, 0,0,&vIndices);
    // Set the viewport
+
    glViewport ( 0, 0, this->width, this->height );
-
    // Clear the color buffer
-   glClear ( GL_COLOR_BUFFER_BIT );
-
+   //glDepthRangef(0.1f, 1000.0f);
+   glDepthFunc(GL_LESS);
+   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   //mShader->setInt("texture1", 10);
+   //mTexture->bind(10);
    mTexture->bind((*mShader)("texture1"));
    // Use the program object
    mShader->use();
@@ -139,10 +174,16 @@ void Demo::draw()
    glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_SHORT, vIndices);
 //   glFinish();
     */
+   mShader->setMat4("uTranslate", uTranslate);
+   mShader->setMat4("uScale", uScale);
+   mShader->setMat4("uRotate", uRotate);
+   mShader->setMat4("uProjection", uProjection);
+   mShader->setMat4("uView", uView);
 
-   mVertex->attachVBO((*mShader)("aPos"), 0, 3);
-   mVertex->attachVBO((*mShader)("aColor"), 5, 3);
-   mVertex->attachVBO((*mShader)("aTexCoord"), 3, 2);
+   glVertexAttrib3f((*mShader)("aColor"), 1.0f, 0.5f, 0.5f);
+   mVertex->attachVBO((*mShader)("aPosition"), 0, 3);
+   //mVertex->attachVBO((*mShader)("aColor"), 5, 3);
+   mVertex->attachVBO((*mShader)("aTexCoord"), 6, 2);
    mVertex->draw(GL_TRIANGLES);
 }
 
@@ -150,15 +191,16 @@ int main ( int argc, char *argv[] )
 {
    Demo  demo("Hello Triangle", 600, 600);
    demo.loadShader("res/shaders/textureTest.vs", "res/shaders/textureTest.fs");
- //  demo.loadTexture("res/textures/container.jpg");
-   demo.loadTexture("res/textures/awesomeface.png", GL_TRUE);
+   glEnable(GL_DEPTH_TEST);
+   demo.loadTexture("res/textures/container.jpg");
+//   demo.loadTexture("res/textures/awesomeface.png", GL_TRUE);
  // demo.loadTexture("res/textures/matrix.jpg", GL_TRUE);
  //  demo.loadTexture("res/textures/container2.png");
    demo.loadVertex();
 
-//   demo.refreshForever();
-    demo.refreshOnce();
-    sleep(5);
+   demo.refreshForever();
+   demo.refreshOnce();
+    //sleep(5);
    return 0;
 }
 
