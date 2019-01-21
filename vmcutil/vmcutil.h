@@ -4,36 +4,37 @@
 #include <pthread.h>
 #include <stdint.h>
 
-#define CHARGC    ((fcall_hdr_t *)(_ctx->smemref))->argc
-#define CHARGS    ((fcall_hdr_t *)(_ctx->smemref))->arg
+#define CHARGC(_ctx)    ((fcall_hdr_t *)(_ctx->smemref))->argc
+#define CHARGS(_ctx)    ((fcall_hdr_t *)(_ctx->smemref))->arg
 
-#define START_FCALL(_ctx, _func) void *__tmp[10] = {NULL};int _tloop, _argoff; \
-              ((fcall_hdr_t *)(_ctx->smemref))->vid = ctx->frame.vid; \
-              ((fcall_hdr_t *)(_ctx->smemref))->size = ctx->smemsize; \
+#define START_FCALL(_ctx, _func) void *tmp[10] = {NULL}; int _tloop, _argoff; \
+              ((fcall_hdr_t *)(_ctx->smemref))->vid = _ctx->frame.vid; \
+              ((fcall_hdr_t *)(_ctx->smemref))->size = _ctx->smemsize; \
               ((fcall_hdr_t *)(_ctx->smemref))->swlocked = 0;         \
               ((fcall_hdr_t *)(_ctx->smemref))->methodid = _func;     \
-              CHARGC =0;
+              CHARGC(_ctx) = 0;
 
-#define ADD_FCALL_ARG(_ctx, _arg, _type)  CHARGS[CHARGC].offset =      \
-    (CHARGC)? CHARGS[CHARGC-1].offset + CHARGS[CHARGC -1].length : 0;  \
-    CHARGS[CHARGC].length = sizeof(_arg); CHARGS[CHARGC].type = _type; \
-    __tmp[CHARGC] = (void *)&(_arg); CHARGC++;
+#define ADD_FCALL_ARG(_ctx, _arg, _type)  CHARGS(_ctx)[CHARGC(_ctx)].offset =      \
+    (CHARGC(_ctx))? CHARGS(_ctx)[CHARGC(_ctx)-1].offset + CHARGS(_ctx)[CHARGC(_ctx) -1].length : 0;  \
+    CHARGS(_ctx)[CHARGC(_ctx)].length = sizeof(_arg); CHARGS(_ctx)[CHARGC(_ctx)].type = _type; \
+    tmp[CHARGC(_ctx)] = (void *)&(_arg); CHARGC(_ctx)++;
 
 
 #define END_FCALL(_ctx)  _argoff = \
-                   (int)((fcall_hdr_t *)(0))->arg + CHARGC * sizeof(datamem_t); \
-                   for(_tloop = 0; _tloop < (int)CHARGC; _tloop++) {  \
-                       CHARGS[_tloop].offset += _argoff;                \
-                       memcpy((char*)(_ctx->smemref) + CHARGS[_tloop].offset, \
-                       __tmp[_tloop], CHARGS[_tloop].length);               \
+                   (long)(((fcall_hdr_t *)(0))->arg) + CHARGC(_ctx) * sizeof(datamem_t); \
+                   for(_tloop = 0; _tloop < (int)CHARGC(_ctx); _tloop++) {  \
+                       CHARGS(_ctx)[_tloop].offset += _argoff;                \
+                       memcpy((char*)(_ctx->smemref) + CHARGS(_ctx)[_tloop].offset, \
+                       tmp[_tloop], CHARGS(_ctx)[_tloop].length);               \
                    }                                    \
-                   _tloop = _CHARGS[CHARGC - 1].offset + CHARGS[CHARGC - 1].length;
+                   ((fcall_hdr_t *)(_ctx->smemref))->endoff = \
+                   CHARGS(_ctx)[CHARGC(_ctx) - 1].offset + CHARGS(_ctx)[CHARGC(_ctx) - 1].length;
 
 
-#define UPDATE_PARG_MEM(_ctx, _arg, _size, _aindex) _argoff = _tloop;       \
-                      _tloop += _size;                           \
-                       memcpy((char*)(_ctx->smemref) + CHARGS[_aindex].offset, \
-                       &_argoff, sizeof(void*));               \
+#define UPDATE_PARG_MEM(_ctx, _arg, _size, _aindex) _argoff = ((fcall_hdr_t *)(_ctx->smemref))->endoff; \
+                       ((fcall_hdr_t *)(_ctx->smemref))->endoff += _size;           \
+                       memcpy((char*)(_ctx->smemref) + CHARGS(_ctx)[_aindex].offset, \
+                       &_argoff, sizeof(void *));               \
                        memcpy((char*)(_ctx->smemref) + _argoff, (void *)_arg, _size);
 
 
@@ -75,6 +76,7 @@ typedef struct __attribute__((packed)) fcall_hdr{
     uint16_t methodid;
     uint8_t swlocked;
     uint8_t argc;
+    uint32_t endoff;
     datamem_t arg[1];
 } fcall_hdr_t ;
 
@@ -85,12 +87,19 @@ extern int send_call(ccontext_t *ctx);
 extern int rcv_call(ccontext_t *ctx);
 
 
-static inline void *get_arg(ccontext_t *ctx, int index)
+static inline void *get_arg_ptr(ccontext_t *ctx, int index)
 {
     fcall_hdr_t *fhdr = ctx->smemref;
+    printf("%d : %d\n", fhdr->arg[index].offset, *((uint32_t *)(((char *)fhdr)+fhdr->arg[index].offset)));
     return (fhdr->arg[index].type)
-        ? ((char *)fhdr) + *((long *)(((char *)fhdr)+fhdr->arg[index].offset))
+        ? ((char *)fhdr) + *((uint32_t *)(((char *)fhdr)+fhdr->arg[index].offset))
         : ((char *)fhdr)+fhdr->arg[index].offset;
+}
+
+static inline void *get_ret_ptr(ccontext_t *ctx)
+{
+    fcall_hdr_t *fhdr = ctx->smemref;
+    return (((char *)fhdr) + fhdr->endoff);
 }
 
 #ifdef __cplusplus

@@ -199,78 +199,54 @@ void unmap_smem(void *maped_mem, unsigned long size)
     munmap(maped_mem, size);
 }
 
-int send_fd(int sockfd, int sfd, void *metadata, int datalen)
+int send_fd(int sockfd, int sfd)
 {
     struct msghdr msg = {0};
     struct cmsghdr *cmsg;
-    int meta_data_len = ((metadata == NULL) || (datalen <= 0))? 0: datalen;
-    char dup[256];
-    char *buf = NULL; //[CMSG_SPACE(sizeof(int)) + meta_data_len];
-    int buflen = CMSG_SPACE(sizeof(int)) + meta_data_len;
+    char buf[CMSG_SPACE(sizeof(int))], dup[256];
     struct iovec io = { .iov_base = &dup, .iov_len = sizeof(dup) };
 
-    buf = (char *)malloc(buflen);
-    if (buf == NULL) return -1;
-
-    memset(buf, '\0', buflen);
+    memset(buf, '\0', sizeof(buf));
     msg.msg_iov = &io;
     msg.msg_iovlen = 1;
     msg.msg_control = buf;
-    msg.msg_controllen = buflen;
+    msg.msg_controllen = sizeof(buf);
 
     cmsg = CMSG_FIRSTHDR(&msg);
     cmsg->cmsg_level = SOL_SOCKET;
     cmsg->cmsg_type = SCM_RIGHTS;
-    cmsg->cmsg_len = CMSG_LEN(sizeof(int)) + meta_data_len;
+    cmsg->cmsg_len = CMSG_LEN(sizeof(int));
 
     memcpy ((int *) CMSG_DATA(cmsg), &sfd, sizeof (int));
-    if (meta_data_len)
-        memcpy (((int *) CMSG_DATA(cmsg)) + 1, metadata, meta_data_len);
 
     if (sendmsg (sockfd, &msg, MSG_NOSIGNAL) < 0) {
-        free(buf);
         handle_error ("Failed to send message");
     }
-    free(buf);
 
     return 0;
 }
 
-int rcv_fd(int sockfd, void *metaout, int *inoutlen)
+int rcv_fd(int sockfd)
 {
     int fd = -1;
     struct msghdr msg = {0};
     struct cmsghdr *cmsg;
-    int meta_data_len = 0;
-    char dup[256];
-    char *buf = NULL;//[CMSG_SPACE(sizeof(int)) + meta_data_len];
+    char buf[CMSG_SPACE(sizeof(int))], dup[256];
     struct iovec io = { .iov_base = &dup, .iov_len = sizeof(dup) };
-    int buflen = 0;
 
-    if ((metaout && inoutlen) && (*inoutlen > 0)) meta_data_len = *inoutlen;
-
-    buflen = CMSG_SPACE(sizeof(int)) + meta_data_len;
-    buf = (char *)malloc(buflen);
-    if (buf == NULL) return -1;
-
-    memset(buf, '\0', buflen);
+    memset(buf, '\0', sizeof(buf));
     msg.msg_iov = &io;
     msg.msg_iovlen = 1;
     msg.msg_control = buf;
-    msg.msg_controllen = buflen;
+    msg.msg_controllen = sizeof(buf);
 
     if (recvmsg (sockfd, &msg, 0) < 0) {
-        free(buf);
         handle_error ("Failed to receive message");
     }
     cmsg = CMSG_FIRSTHDR(&msg);
 
     memcpy (&fd, (int *) CMSG_DATA(cmsg), sizeof(int));
-    if (meta_data_len) {
-        *inoutlen = (int)(CMSG_LEN(cmsg->cmsg_len) - sizeof(int));
-         memcpy (metaout, ((int *) CMSG_DATA(cmsg)) + 1, *inoutlen);
-    }
-    free(buf);
+
     return fd;
 }
 
@@ -336,7 +312,7 @@ void clear_rx_buffer(int sockfd)
     while (watch_fd(sockfd, 0) > 0) read(sockfd, discard_buf, sizeof(discard_buf));
 }
 
-int send_data(int sockfd, char *buffer, unsigned long size)
+int send_data(int sockfd, void *buffer, unsigned long size)
 {
     return send(sockfd, buffer, size, MSG_NOSIGNAL);
 }
