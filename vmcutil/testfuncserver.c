@@ -3,10 +3,18 @@
 #include "cutil.h"
 #include "vmcutil.h"
 #include <string.h>
+#include <math.h>
 
 static void fcall_handler(int fid, int argc, void **args, void*ret, uint32_t *retsize)
 {
-    *(((int *)ret)) = strcmp(args[0], args[1]);
+    switch (fid) {
+    case 66:
+        *(((int *)ret)) = strcmp(args[0], args[1]);
+        break;
+    case 67:
+        *(((long double *)ret)) = sqrtl(*((long double *)args[0]));
+        break;
+    }
 }
 
 int main(int argc, char **argv)
