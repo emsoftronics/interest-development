@@ -1,3 +1,7 @@
+
+#ifdef ENABLE_MREMAP_SYSCALL
+#define _GNU_SOURCE
+#endif
 #include <fcntl.h>
 #include <stdio.h>
 #include <errno.h>
@@ -315,5 +319,38 @@ void clear_rx_buffer(int sockfd)
 int send_data(int sockfd, void *buffer, unsigned long size)
 {
     return send(sockfd, buffer, size, MSG_NOSIGNAL);
+}
+
+int resize_shared_mem(int fd, unsigned long old_size, unsigned long new_size, void **smemref)
+{
+    if (fd < 0) return -1;
+    if (old_size == new_size) return fd;
+
+    if (ftruncate(fd, new_size) < 0) goto ResizeRemapError;
+
+    if (smemref) {
+        if (! (*smemref)) {
+            *smemref = map_smem(fd, new_size);
+            if (! (*smemref)) goto ResizeRemapError;
+        }
+        else {
+#ifdef ENABLE_MREMAP_SYSCALL
+            #warning "mremap syscall will be used for remaping!!"
+            *smemref = mremap(*smemref, old_size, new_size, MREMAP_MAYMOVE);
+            if ((long)MAP_FAILED == (long)(*smemref)) goto ResizeRemapError;
+#else
+            #warning "mmap & munmap will be used for remaping!!"
+            unmap_smem(*smemref, old_size);
+            *smemref = map_smem(fd, new_size);
+            if (! (*smemref)) goto ResizeRemapError;
+#endif
+        }
+    }
+
+    return fd;
+ResizeRemapError:
+    if (smemref) unmap_smem(*smemref, old_size);
+    close(fd);
+    return -1;
 }
 

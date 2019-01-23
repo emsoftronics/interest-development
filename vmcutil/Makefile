@@ -31,7 +31,9 @@ DLDFLAGS :=  -L$(DLDIR)
 INC		:=  -I$(current_dir)/../ -I.
 
 DDEPLIBS := $(DEPLIBS:-l%=$(DLDIR)/lib%.so)
+DDEPLIBS :=  $(filter-out $(DNAME), $(DDEPLIBS))
 SDEPLIBS := $(DEPLIBS:-l%=$(SLDIR)/lib%.a)
+SDEPLIBS :=  $(filter-out $(SNAME), $(SDEPLIBS))
 LIBDIRS := $(DEPLIBS:-l%=$(current_dir)/../%)
 
 .PHONY: all clean fclean rebuild c_lib_static c_lib_dynamic c_app

@@ -22,7 +22,7 @@ int main(int argc, char **argv)
     int sockfd;
     int fd;
 
-   sockfd = make_local_server("testserver");
+    sockfd = make_local_server("testserver");
     while(1)
     {
         fd = wait_for_client(sockfd, -1);
@@ -32,4 +32,5 @@ int main(int argc, char **argv)
     close(sockfd);
     return -1;
 }
+
 

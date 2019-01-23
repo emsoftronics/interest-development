@@ -71,6 +71,8 @@ typedef struct __attribute__((packed)) ccontext{
     int smemfd;
     qframe_t frame;
     uint32_t smemsize;
+    uint16_t lockinitdone;
+    uint16_t locked;
     void *smemref;
     pthread_mutex_t lock;
 } ccontext_t;
@@ -92,8 +94,9 @@ typedef struct __attribute__((packed)) fcall_hdr{
 } fcall_hdr_t ;
 
 extern void handle_ipc_calls(int cfd, ipc_fcall_t fcall_handler);
-extern ccontext_t *get_client_context(const char *servername);
+extern ccontext_t *get_client_context(const char *servername, int argc, unsigned long total_arg_mem);
 extern void *call_function(ccontext_t *ctx);
+extern void release_client_context(ccontext_t *ctx);
 
 #ifdef __cplusplus
 }

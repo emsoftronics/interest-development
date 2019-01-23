@@ -2,6 +2,8 @@
 #ifndef __CUTIL_H__
 #define __CUTIL_H__
 
+#define ALIGN_BY_SIZE(_x, _size) (((_x) & ~((_size)-1)) + ((_size)-1))
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,6 +23,7 @@ extern int is_accessible_dir(const char *dirpath);
 extern char *get_temp_dir(void);
 extern void clear_rx_buffer(int sockfd);
 extern int send_data(int sockfd, void *buffer, unsigned long size);
+extern int resize_shared_mem(int fd, unsigned long old_size, unsigned long new_size, void **smemref);
 #ifdef __cplusplus
 }
 #endif
