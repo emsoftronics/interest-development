@@ -16,6 +16,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <poll.h>
+#include<sys/time.h>
 
 #include "cutil.h"
 
@@ -335,11 +336,9 @@ int resize_shared_mem(int fd, unsigned long old_size, unsigned long new_size, vo
         }
         else {
 #ifdef ENABLE_MREMAP_SYSCALL
-            #warning "mremap syscall will be used for remaping!!"
             *smemref = mremap(*smemref, old_size, new_size, MREMAP_MAYMOVE);
             if ((long)MAP_FAILED == (long)(*smemref)) goto ResizeRemapError;
 #else
-            #warning "mmap & munmap will be used for remaping!!"
             unmap_smem(*smemref, old_size);
             *smemref = map_smem(fd, new_size);
             if (! (*smemref)) goto ResizeRemapError;
@@ -352,5 +351,13 @@ ResizeRemapError:
     if (smemref) unmap_smem(*smemref, old_size);
     close(fd);
     return -1;
+}
+
+long double get_millisecond_time(void)
+{
+    struct timeval tv;
+
+    gettimeofday(&tv,NULL);
+    return (((long double)tv.tv_sec)*1000.0f)+(((long double)tv.tv_usec)/1000.0f);
 }
 

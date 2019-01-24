@@ -24,6 +24,7 @@ extern char *get_temp_dir(void);
 extern void clear_rx_buffer(int sockfd);
 extern int send_data(int sockfd, void *buffer, unsigned long size);
 extern int resize_shared_mem(int fd, unsigned long old_size, unsigned long new_size, void **smemref);
+extern long double get_millisecond_time(void);
 #ifdef __cplusplus
 }
 #endif

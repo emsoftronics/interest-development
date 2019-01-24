@@ -5,6 +5,20 @@
 #include <string.h>
 #include <math.h>
 
+static char *reverse(char *x, int begin, int end)
+{
+   char c;
+
+   if (begin >= end)
+      return;
+   c          = *(x+begin);
+   *(x+begin) = *(x+end);
+   *(x+end)   = c;
+
+   reverse(x, ++begin, --end);
+   return x;
+}
+
 static void fcall_handler(int fid, int argc, void **args, void*ret, uint32_t *retsize)
 {
     switch (fid) {
@@ -14,7 +28,11 @@ static void fcall_handler(int fid, int argc, void **args, void*ret, uint32_t *re
     case 67:
         *(((long double *)ret)) = sqrtl(*((long double *)args[0]));
         break;
+    case 68:
+        reverse((char *)args[0], *((int*)args[1]), *((int*)args[2]));
+        break;
     }
+
 }
 
 int main(int argc, char **argv)

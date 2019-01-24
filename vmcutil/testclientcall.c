@@ -6,6 +6,22 @@
 
 //static ccontext_t context = {0};
 
+char *my_reverse(char *x, int begin, int end)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(68, 2, sizeof(x) + sizeof(begin) + sizeof(end) + end + 4);
+    DCC_ADD_ARG(x, 1);
+    DCC_ADD_ARG(begin, 0);
+    DCC_ADD_ARG(end, 0);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(x, end + 1, 0);
+    DCC_RET_ONLY();
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(x, end, 0);
+    DCC_END_CALL();
+#endif
+    return x;
+}
+
 int my_strcmp(const char *s1, const char *s2) //66
 {
     int ret = -0xfffffff;
@@ -35,43 +51,41 @@ long double my_sqrtl(long double x) //67
     return ret;
 }
 
-char *str1 = NULL;
-char *str2 = NULL;
 
 void *threadfunc(void *ctx)
 {
     while(1) {
-        printf("Comparision result: %d\n", my_strcmp(str1, str2));
+//        printf("Comparision result: %d\n", my_strcmp(str1, str2));
         fflush(stdout);
         usleep(100);
     }
 }
 
+
 int main(int argc, char **argv)
 {
     long double x;
+    char *mem = NULL;
+    char *end = NULL;
+    int size = (argc > 1)? atoi(argv[1]): 100;
     pthread_t thread;
-    if (argc < 3) return -1;
-    str1 = argv[1];
-    str2 = argv[2];
 
-    //do {
-    printf("Enter Sqrt input: ");
-    scanf(" %Lf", &x);
-#if 1
-    pthread_create(&thread, NULL, threadfunc, NULL);
-#endif
-        while (1) {
-#if 0
-            printf("Comparision result: %d\n", my_strcmp(str1, str2));
-#else
-            printf(" ____________\n");
-            printf("V %8.4Lf\t= %8.4Lf\n", x, my_sqrtl(x));
-#endif
-            fflush(stdout);
-            usleep(100);
-        }
-   // } while (getchar() != (int)'x');
+    mem = malloc(size);
+    if (!mem) return -1;
+    end = mem+size -1;
+    strcpy(mem, "Jagdish Prajapati");
+    *(end) = '\0';
+    *(end - 1) = 'j';
+    *(end - 2) = 'p';
+    printf("size = %d\n", size);
+    printf("%s\n", mem);
+    printf("%s\n", (end - 2));
+
+    printf("After reverse: %s\n", my_reverse(mem,0,size - 1)+1);
+    printf("end After reverse: %s\n", end - 10 );
+    do {
+        //
+    } while (getchar() != (int)'x');
     return 0;
 }
 
