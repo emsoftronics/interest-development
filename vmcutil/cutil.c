@@ -345,7 +345,6 @@ int resize_shared_mem(int fd, unsigned long old_size, unsigned long new_size, vo
 #endif
         }
     }
-
     return fd;
 ResizeRemapError:
     if (smemref) unmap_smem(*smemref, old_size);

@@ -67,8 +67,7 @@ static int init_server_side_client_context(ccontext_t *ctx)
     int len = sizeof (qframe_t);
     pthread_mutexattr_t  mta;
     if ((!ctx) || (ctx->sockfd <= 2)) return -1;
-    clear_rx_buffer(ctx->sockfd);
-
+    //clear_rx_buffer(ctx->sockfd);
     ctx->smemfd = rcv_fd(ctx->sockfd);
     if (ctx->smemfd <= 2) goto init_failure;
 

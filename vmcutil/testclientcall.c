@@ -64,7 +64,7 @@ void *threadfunc(void *ctx)
 
 int main(int argc, char **argv)
 {
-    long double x;
+    long double t1, t2;
     char *mem = NULL;
     char *end = NULL;
     int size = (argc > 1)? atoi(argv[1]): 100;
@@ -73,6 +73,7 @@ int main(int argc, char **argv)
     mem = malloc(size);
     if (!mem) return -1;
     end = mem+size -1;
+    do {
     strcpy(mem, "Jagdish Prajapati");
     *(end) = '\0';
     *(end - 1) = 'j';
@@ -80,11 +81,13 @@ int main(int argc, char **argv)
     printf("size = %d\n", size);
     printf("%s\n", mem);
     printf("%s\n", (end - 2));
-
-    printf("After reverse: %s\n", my_reverse(mem,0,size - 1)+1);
+    t1 = get_millisecond_time();
+    my_reverse(mem,0,size - 1);
+    t2 = get_millisecond_time();
+    printf("Time Taken in call of my_reverse function with memory exchange of %d bytes : %Lf ms\n", size, t2-t1);
+    printf("After reverse: %s\n", mem+1);
     printf("end After reverse: %s\n", end - 10 );
-    do {
-        //
+
     } while (getchar() != (int)'x');
     return 0;
 }
