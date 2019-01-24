@@ -46,11 +46,10 @@
                        &_argoff, sizeof(void *));                                       \
                        memcpy((char*)(_ctx->smemref) + _argoff, (void *)_arg, _size);
 
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 typedef void (*ipc_fcall_t) (int, int, void **, void*, uint32_t *);
 
@@ -94,9 +93,60 @@ typedef struct __attribute__((packed)) fcall_hdr{
 } fcall_hdr_t ;
 
 extern void handle_ipc_calls(int cfd, ipc_fcall_t fcall_handler);
-extern ccontext_t *get_client_context(const char *servername, int argc, unsigned long total_arg_mem);
+extern ccontext_t *get_client_context(ccontext_t *ctx, const char *servername, int argc, unsigned long total_arg_mem);
 extern void *call_function(ccontext_t *ctx);
 extern void release_client_context(ccontext_t *ctx);
+
+static inline void *get_arg_ptr(ccontext_t *ctx, int index)
+{
+    fcall_hdr_t *fhdr = ctx->smemref;
+    return (fhdr->arg[index].type)
+        ? ((char *)fhdr) + *((uint32_t *)(((char *)fhdr)+fhdr->arg[index].offset))
+        : ((char *)fhdr)+fhdr->arg[index].offset;
+}
+
+#ifdef DEFAULT_CLIENT_CONTEXT
+#define DCC_QUOTE(name) #name
+#define DCC_STR(macro) DCC_QUOTE(macro)
+#define DCC_SERVER  DCC_STR(DEFAULT_CLIENT_CONTEXT)
+extern ccontext_t *def_client(void);
+#define DCC_Ctx def_client()
+#define DCC_START_CALL(_fid, _argc, _extramem)  do { int largc = (_argc);               \
+                        ccontext_t *_ctx = get_client_context(DCC_Ctx,                  \
+                        DCC_SERVER , largc, (_extramem));                               \
+                        if (!_ctx) break;                                               \
+                        START_FCALL(_ctx, (_fid))  while(0)
+
+#define DCC_ADD_ARG(_arg, _type)    ADD_FCALL_ARG(_ctx, _arg, _type) while(0)
+
+#define DCC_ARG_OVER()  END_FCALL(_ctx) while(0)
+
+#define DCC_ADD_APTR_MEM(_arg, _size, _aindex)                                          \
+                        UPDATE_PARG_MEM(_ctx, _arg, (_size), (_aindex)) while(0)
+
+#define DCC_UPDATE_NON_CONST_PTR_ON_RET(_dstptr, _size, _aindex)                        \
+                        memcpy((void *)(_dstptr), get_arg_ptr(_ctx, _aindex), _size)
+
+#define DCC_RET_VAL(_retvar) _retvar = *((typeof(_retvar) *)call_function(_ctx))
+
+#define DCC_RET_ONLY()  call_function(_ctx)
+
+#define DCC_END_CALL()  release_client_context(_ctx); } while(0)
+#endif
+
+
+#define RUN_FCALL_SERVER(_server, _fchndlr) ({int _sockfd,  _cfd;               \
+                        _sockfd = make_local_server((const char *)(_server));   \
+                        while(1) { _cfd = wait_for_client(_sockfd, -1);         \
+                        handle_ipc_calls(_cfd, _fchndlr);}                        \
+                        close(_sockfd); })
+
+#ifdef DEFAULT_FCALL_SERVER
+#define DFS_QUOTE(name) #name
+#define DFS_STR(macro) DFS_QUOTE(macro)
+#define DFS_SERVER  DFS_STR(DEFAULT_FCALL_SERVER)
+#define RUN_DEFAULT_FCALL_SERVER(_fchndlr) RUN_FCALL_SERVER(DFS_SERVER, _fchndlr)
+#endif
 
 #ifdef __cplusplus
 }

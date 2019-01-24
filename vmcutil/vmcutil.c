@@ -5,6 +5,22 @@
 
 #define MAX_WAITTIME_FOR_CONNECTION_RETRY 100
 
+#ifdef DEFAULT_CLIENT_CONTEXT
+#define DCC_CAT(_x) gs_ ## _x
+#define GS_VAR_DCC(_x)  DCC_CAT(_x)
+#define DCC_GS_VAR  GS_VAR_DCC(DEFAULT_CLIENT_CONTEXT)
+static ccontext_t DCC_GS_VAR = {
+    .sockfd = -1,
+    .smemfd = -1,
+    .lockinitdone = 1,
+    .locked = 0,
+    .smemsize = 0,
+    .lock = PTHREAD_MUTEX_INITIALIZER,
+};
+
+ccontext_t *def_client(void) { return &DCC_GS_VAR;}
+#endif
+
 static int init_server_side_client_context(ccontext_t *ctx);
 static void reset_context(ccontext_t *ctx);
 static int lock_context(ccontext_t *ctx);
@@ -14,7 +30,7 @@ static int init_client_context(ccontext_t *ctx, const char *servername, unsigned
 {
     pthread_mutexattr_t  mta;
     if ((!ctx) || (!servername) || (sizeofsmem == 0)) return -1;
-    reset_context(ctx);
+
     if ((ctx->sockfd = connect_to_server(servername, MAX_WAITTIME_FOR_CONNECTION_RETRY)) <= 0)
         goto init_failure;
 
@@ -101,19 +117,17 @@ static void reset_context(ccontext_t *ctx)
     if (ctx->smemref) unmap_smem(ctx->smemref, ctx->smemsize);
     ctx->smemref = NULL;
     ctx->smemsize = 0;
-
-    if (ctx->lockinitdone) {
-        while (ctx->locked) unlock_context(ctx);
-    }
-
-    if (ctx->lockinitdone == 2) {
-        pthread_mutex_destroy(&(ctx->lock));
-        ctx->lockinitdone = 0;
-    }
     ctx->frame.vid.pid = 0;
     ctx->frame.vid.rid = 0;
     ctx->frame.qid = ctx->frame.offset = 0;
     ctx->frame.size = 0;
+    if (ctx->lockinitdone) {
+        while (ctx->locked) unlock_context(ctx);
+    }
+    if (ctx->lockinitdone == 2) {
+        pthread_mutex_destroy(&(ctx->lock));
+        ctx->lockinitdone = 0;
+    }
 }
 
 static int send_call(ccontext_t *ctx)
@@ -179,7 +193,7 @@ ErrorToReset:
    reset_context(ctx);
    return -1;
 }
-
+#if 0
 static inline void *get_arg_ptr(ccontext_t *ctx, int index)
 {
     fcall_hdr_t *fhdr = ctx->smemref;
@@ -187,7 +201,7 @@ static inline void *get_arg_ptr(ccontext_t *ctx, int index)
         ? ((char *)fhdr) + *((uint32_t *)(((char *)fhdr)+fhdr->arg[index].offset))
         : ((char *)fhdr)+fhdr->arg[index].offset;
 }
-
+#endif
 static inline void *get_ret_ptr(ccontext_t *ctx)
 {
     fcall_hdr_t *fhdr = ctx->smemref;
@@ -229,13 +243,9 @@ void handle_ipc_calls(int cfd, ipc_fcall_t fcall_handler)
 static int lock_context(ccontext_t *ctx)
 {
     if (!ctx) return -1;
-    if ((ctx->lockinitdone) && (ctx->smemfd > 2)) {
+    if (ctx->lockinitdone) {
         pthread_mutex_lock(&(ctx->lock));
         ctx->locked++;
-        if (ctx->smemfd <= 2) {
-            unlock_context(ctx);
-            return -1;
-        }
     }
     else return -1;
     return 0;
@@ -250,12 +260,17 @@ static void unlock_context(ccontext_t *ctx)
     }
 }
 
-ccontext_t *get_client_context(const char *servername, int argc, unsigned long total_arg_mem)
+ccontext_t *get_client_context(ccontext_t *ctx, const char *servername, int argc, unsigned long total_arg_mem)
 {
-    static ccontext_t context = {0};
     unsigned long pagesize = 512;
     unsigned long smemsize  = sizeof(fcall_hdr_t) + argc*sizeof(datamem_t)
                                         + total_arg_mem + 4*sizeof(void *);
+    int lockinitflag = 0;
+    if (!ctx) return NULL;
+    if (ctx->lockinitdone) {
+        if (lock_context(ctx) < 0) return NULL;
+        lockinitflag = 1;
+    }
 #ifdef USE_GETPAGESIZE
     pagesize = (unsigned long)getpagesize();
 #elif defined USE_SYSCONF_PAGE
@@ -273,24 +288,26 @@ ccontext_t *get_client_context(const char *servername, int argc, unsigned long t
 #endif
     smemsize = ALIGN_BY_SIZE(smemsize, pagesize);
 
-    if ((context.sockfd <= 2)||(context.smemfd <= 2)) {
-        if (init_client_context(&context, servername, smemsize) < 0) {
+    if ((ctx->sockfd <= 2)||(ctx->smemfd <= 2)) {
+        if (init_client_context(ctx, servername, smemsize) < 0) {
             //printf("client context initialization error!!\n");
             return NULL;
         }
     }
 
-    if (lock_context(&context) < 0) return NULL;
+    if (!lockinitflag) {
+        if (lock_context(ctx) < 0) return NULL;
+    }
 
-    context.smemfd = resize_shared_mem(context.smemfd, context.smemsize, smemsize, &(context.smemref));
-    if (context.smemfd < 0) {
-        reset_context(&context);
+    ctx->smemfd = resize_shared_mem(ctx->smemfd, ctx->smemsize, smemsize, &(ctx->smemref));
+    if (ctx->smemfd < 0) {
+        reset_context(ctx);
         return NULL;
     }
-    else context.smemsize = smemsize;
+    else ctx->smemsize = smemsize;
 
-    SMEM_WRITE_LOCK((&context));
-    return &context;
+    SMEM_WRITE_LOCK(ctx);
+    return ctx;
 }
 
 void *call_function(ccontext_t *ctx)

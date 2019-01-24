@@ -8,30 +8,31 @@
 
 int my_strcmp(const char *s1, const char *s2) //66
 {
-    int *ret = NULL;
-    ccontext_t *context = get_client_context("testserver", 2, strlen(s1) + strlen(s2) + 2);
-    if (! context) return -9999;
-    START_FCALL(context, 66)
-    ADD_FCALL_ARG(context, s1, 1)
-    ADD_FCALL_ARG(context, s2, 1)
-    END_FCALL(context)
-    UPDATE_PARG_MEM(context, s1, strlen(s1) + 1, 0)
-    UPDATE_PARG_MEM(context, s2, strlen(s2) + 1, 1)
-    ret = call_function(context);
-    release_client_context(context);
-    return (ret)?*ret:-9999;
+    int ret = -0xfffffff;
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(66, 2, strlen(s1) + strlen(s2) + 2);
+    DCC_ADD_ARG(s1, 1);
+    DCC_ADD_ARG(s2, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(s1, strlen(s1) + 1, 0);
+    DCC_ADD_APTR_MEM(s2, strlen(s2) + 1, 1);
+    DCC_RET_VAL(ret);
+    DCC_END_CALL();
+#endif
+    return ret;
 }
 
-long double my_sqrtl(long double x)
+long double my_sqrtl(long double x) //67
 {
-    long double *ret = NULL;
-    ccontext_t *context = get_client_context("testserver", 1, sizeof(x));
-    if (! context) return -9999;
-    START_FCALL(context, 67)
-    ADD_FCALL_ARG(context, x, 0)
-    END_FCALL(context)
-    ret = call_function(context);
-    return (ret)?*ret:-1;
+    long double ret = -1.0e28;
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(67, 1, sizeof(x));
+    DCC_ADD_ARG(x, 0);
+    DCC_ARG_OVER();
+    DCC_RET_VAL(ret);
+    DCC_END_CALL();
+#endif
+    return ret;
 }
 
 char *str1 = NULL;
@@ -42,7 +43,7 @@ void *threadfunc(void *ctx)
     while(1) {
         printf("Comparision result: %d\n", my_strcmp(str1, str2));
         fflush(stdout);
-        usleep(1000);
+        usleep(100);
     }
 }
 
@@ -57,12 +58,18 @@ int main(int argc, char **argv)
     //do {
     printf("Enter Sqrt input: ");
     scanf(" %Lf", &x);
-//    pthread_create(&thread, NULL, threadfunc, NULL);
+#if 1
+    pthread_create(&thread, NULL, threadfunc, NULL);
+#endif
         while (1) {
+#if 0
+            printf("Comparision result: %d\n", my_strcmp(str1, str2));
+#else
             printf(" ____________\n");
             printf("V %8.4Lf\t= %8.4Lf\n", x, my_sqrtl(x));
+#endif
             fflush(stdout);
-            usleep(1000);
+            usleep(100);
         }
    // } while (getchar() != (int)'x');
     return 0;

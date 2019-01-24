@@ -19,10 +19,13 @@ static void fcall_handler(int fid, int argc, void **args, void*ret, uint32_t *re
 
 int main(int argc, char **argv)
 {
+#ifdef DEFAULT_FCALL_SERVER
+    RUN_DEFAULT_FCALL_SERVER(fcall_handler);
+#else
     int sockfd;
     int fd;
 
-    sockfd = make_local_server("testserver");
+    sockfd = make_local_server("hello");
     while(1)
     {
         fd = wait_for_client(sockfd, -1);
@@ -30,6 +33,7 @@ int main(int argc, char **argv)
         handle_ipc_calls(fd, fcall_handler);
     }
     close(sockfd);
+#endif
     return -1;
 }
 
