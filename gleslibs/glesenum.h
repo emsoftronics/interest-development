@@ -18,6 +18,8 @@
 
 #ifndef __GLESENUM_H__
 #define __GLESENUM_H__
+#define GL_STRLEN(s) (((s)==NULL)?0:strlen(s))
+
 typedef enum {
 GLESv2_glActiveTexture = 0x200,
 GLESv2_glBindBuffer,
@@ -314,4 +316,20 @@ GLESv1_glTranslatex,
 GLESv1_glVertexPointer
 } gles1_t;
 
+
+static inline int gles_sizeof(int type)
+{
+    switch(type&0xf)
+    {
+        case 0x0:   return sizeof(signed char);
+        case 0x1:   return sizeof(unsigned char);
+        case 0x2:   return sizeof(short);
+        case 0x3:   return sizeof(unsigned short);
+        case 0x4:   return sizeof(int);
+        case 0x5:   return sizeof(unsigned int);
+        case 0x6:   return sizeof(float);
+        default:    return sizeof(void *);
+    }
+    return 0;
+}
 #endif /* __GLESENUM_H__ */
