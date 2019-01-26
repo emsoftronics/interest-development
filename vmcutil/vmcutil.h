@@ -7,13 +7,16 @@
 #define CHARGC(_ctx)    ((fcall_hdr_t *)(_ctx->smemref))->argc
 #define CHARGS(_ctx)    ((fcall_hdr_t *)(_ctx->smemref))->arg
 #define METHODID(_ctx)  ((fcall_hdr_t *)(_ctx->smemref))->methodid
+#define CHARG_OFFSET(_ctx)  ((long)(((fcall_hdr_t *)(0))->arg) + CHARGC(_ctx) * sizeof(datamem_t))
+
+
 #define SMEM_WRITE_LOCK(_ctx) ({\
                         while(((fcall_hdr_t *)(_ctx->smemref))->swlocked) usleep(500); \
                         ((fcall_hdr_t *)(_ctx->smemref))->swlocked = 1;})
 
 #define SMEM_WRITE_UNLOCK(_ctx) ({((fcall_hdr_t *)(_ctx->smemref))->swlocked = 0;})
 
-#define START_FCALL(_ctx, _func) void *tmp[10] = {NULL}; int _tloop, _argoff; \
+#define START_FCALL(_ctx, _func) void *tmp[12] = {NULL}; int _tloop, _argoff; \
               ((fcall_hdr_t *)(_ctx->smemref))->vid = _ctx->frame.vid;        \
               ((fcall_hdr_t *)(_ctx->smemref))->size = _ctx->smemsize;        \
               ((fcall_hdr_t *)(_ctx->smemref))->swlocked = 0;                 \
@@ -28,8 +31,7 @@
                         tmp[CHARGC(_ctx)] = (void *)&(_arg); CHARGC(_ctx)++;
 
 
-#define END_FCALL(_ctx)  _argoff = \
-                   (long)(((fcall_hdr_t *)(0))->arg) + CHARGC(_ctx) * sizeof(datamem_t); \
+#define END_FCALL(_ctx)  _argoff = CHARG_OFFSET(_ctx);                                   \
                    for(_tloop = 0; _tloop < (int)CHARGC(_ctx); _tloop++) {               \
                        CHARGS(_ctx)[_tloop].offset += _argoff;                           \
                        memcpy((char*)(_ctx->smemref) + CHARGS(_ctx)[_tloop].offset,      \
@@ -41,10 +43,14 @@
 
 #define UPDATE_PARG_MEM(_ctx, _arg, _size, _aindex) _argoff =                           \
                        ((fcall_hdr_t *)(_ctx->smemref))->endoff;                        \
-                       ((fcall_hdr_t *)(_ctx->smemref))->endoff += _size;               \
+                       if ((long)(_arg) < CHARG_OFFSET(_ctx)) {                         \
+                       memcpy((char*)(_ctx->smemref) + CHARGS(_ctx)[_aindex].offset,    \
+                        &(_arg), sizeof(void *));                                       \
+                       } else {                                                         \
                        memcpy((char*)(_ctx->smemref) + CHARGS(_ctx)[_aindex].offset,    \
                        &_argoff, sizeof(void *));                                       \
-                       memcpy((char*)(_ctx->smemref) + _argoff, (void *)_arg, _size);
+                       memcpy((char*)(_ctx->smemref) + _argoff, (void *)_arg, _size);   \
+                       ((fcall_hdr_t *)(_ctx->smemref))->endoff += _size; }
 
 #ifdef __cplusplus
 extern "C" {
@@ -100,9 +106,14 @@ extern void release_client_context(ccontext_t *ctx);
 static inline void *get_arg_ptr(ccontext_t *ctx, int index)
 {
     fcall_hdr_t *fhdr = ctx->smemref;
-    return (fhdr->arg[index].type)
-        ? ((char *)fhdr) + *((uint32_t *)(((char *)fhdr)+fhdr->arg[index].offset))
-        : ((char *)fhdr)+fhdr->arg[index].offset;
+    void *arg_ptr = ((char *)fhdr)+fhdr->arg[index].offset;
+    if (fhdr->arg[index].type) {
+        if (*((int32_t *)arg_ptr) < (long)(fhdr->arg)-(long)fhdr
+                + (fhdr->argc * sizeof(datamem_t))-1) return arg_ptr;
+        else return ((char *)fhdr) + *((uint32_t *)(((char *)fhdr)+fhdr->arg[index].offset));
+    }
+
+    return arg_ptr;
 }
 
 #ifdef DEFAULT_CLIENT_CONTEXT
@@ -125,6 +136,7 @@ extern ccontext_t *def_client(void);
                         UPDATE_PARG_MEM(_ctx, _arg, (_size), (_aindex)) while(0)
 
 #define DCC_UPDATE_NON_CONST_PTR_ON_RET(_dstptr, _size, _aindex)                        \
+                        if ((long)(_dstptr) > CHARG_OFFSET(_ctx))                       \
                         memcpy((void *)(_dstptr), get_arg_ptr(_ctx, _aindex), _size)
 
 #define DCC_RET_VAL(_retvar) _retvar = *((typeof(_retvar) *)call_function(_ctx))
@@ -138,7 +150,7 @@ extern ccontext_t *def_client(void);
 #define RUN_FCALL_SERVER(_server, _fchndlr) ({int _sockfd,  _cfd;               \
                         _sockfd = make_local_server((const char *)(_server));   \
                         while(1) { _cfd = wait_for_client(_sockfd, -1);         \
-                        handle_ipc_calls(_cfd, _fchndlr);}                        \
+                        handle_ipc_calls(_cfd, _fchndlr);}                      \
                         close(_sockfd); })
 
 #ifdef DEFAULT_FCALL_SERVER
