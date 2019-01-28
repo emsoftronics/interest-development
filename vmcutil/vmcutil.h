@@ -109,8 +109,9 @@ static inline void *get_arg_ptr(ccontext_t *ctx, int index)
     void *arg_ptr = ((char *)fhdr)+fhdr->arg[index].offset;
     if (fhdr->arg[index].type) {
         if (*((int32_t *)arg_ptr) < (long)(fhdr->arg)-(long)fhdr
-                + (fhdr->argc * sizeof(datamem_t))-1) return arg_ptr;
-        else return ((char *)fhdr) + *((uint32_t *)(((char *)fhdr)+fhdr->arg[index].offset));
+                + (fhdr->argc * sizeof(datamem_t))-1)
+            return (void *)(*((long *)arg_ptr));
+        else return ((char *)fhdr) + *((uint32_t *)arg_ptr);
     }
 
     return arg_ptr;

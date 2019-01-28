@@ -9,8 +9,8 @@ static char *reverse(char *x, int begin, int end)
 {
    char c;
    int i, length = (end - begin)/2;
-   if (begin >= end)
-      return;
+   if ((!x) || (begin >= end))
+      return NULL;
    for ( i = begin; i < begin + length; i++) {
         c          = *(x+i);
         *(x+i) = *(x + end - i);
@@ -30,6 +30,7 @@ static void fcall_handler(int fid, int argc, void **args, void*ret, uint32_t *re
         *(((long double *)ret)) = sqrtl(*((long double *)args[0]));
         break;
     case 68:
+        if (args[0] == NULL) printf("first arg is NULL detected!!");
         t1 = get_millisecond_time();
         reverse((char *)args[0], *((int*)args[1]), *((int*)args[2]));
         t2 = get_millisecond_time();
