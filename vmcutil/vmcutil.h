@@ -16,7 +16,7 @@
 
 #define SMEM_WRITE_UNLOCK(_ctx) ({((fcall_hdr_t *)(_ctx->smemref))->swlocked = 0;})
 
-#define START_FCALL(_ctx, _func) void *tmp[12] = {NULL}; int _tloop, _argoff; \
+#define START_FCALL(_ctx, _func) void *tmp[12] = {NULL}; long _tloop, _argoff; \
               ((fcall_hdr_t *)(_ctx->smemref))->vid = _ctx->frame.vid;        \
               ((fcall_hdr_t *)(_ctx->smemref))->size = _ctx->smemsize;        \
               ((fcall_hdr_t *)(_ctx->smemref))->swlocked = 0;                 \
@@ -51,6 +51,26 @@
                        &_argoff, sizeof(void *));                                       \
                        memcpy((char*)(_ctx->smemref) + _argoff, (void *)_arg, _size);   \
                        ((fcall_hdr_t *)(_ctx->smemref))->endoff += _size; }
+
+#define UPDATE_ARRAY_OF_MEM(_ctx, _arg, _count, _lenptr, _aindex)                       \
+                       _argoff =  ((fcall_hdr_t *)(_ctx->smemref))->endoff;             \
+                       ((fcall_hdr_t *)(_ctx->smemref))->endoff += (_count)*sizeof(void*); \
+                       if ((long)(_arg) < CHARG_OFFSET(_ctx)) {                         \
+                        memcpy((char*)(_ctx->smemref) + CHARGS(_ctx)[_aindex].offset,   \
+                            &(_arg), sizeof(void *));                                   \
+                       } else {                                                         \
+                            void **ptr = (void **) ((char*)(_ctx->smemref) + _argoff);  \
+                            int _len = 0;                                               \
+                            CHARGS(_ctx)[_aindex].length = (_count) * sizeof(void*);    \
+                            memcpy((char*)(_ctx->smemref) + CHARGS(_ctx)[_aindex].offset,\
+                            &_argoff, sizeof(void *));                                  \
+                            for (_tloop = 0; _tloop < (_count); _tloop++) {             \
+                                _len = ((long)(_lenptr) > 0) ? _lenptr[_tloop]          \
+                                : strlen(_arg[_tloop]) + 1;                             \
+                                _argoff =  ((fcall_hdr_t *)(_ctx->smemref))->endoff;    \
+                                memcpy((char*)(_ctx->smemref) + _argoff,                \
+                                (void *)_arg[_tloop], _len);  ptr[_tloop] = _argoff;    \
+                                ((fcall_hdr_t *)(_ctx->smemref))->endoff += _len; }}
 
 #ifdef __cplusplus
 extern "C" {

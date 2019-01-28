@@ -332,4 +332,37 @@ static inline int gles_sizeof(int type)
     }
     return 0;
 }
+
+static inline int gles_pixel_channels(int format, int type)
+{
+    switch (type) {
+        case 8363:
+        case 8033:
+        case 8034: return 2;
+        break;
+    }
+
+    switch(format) {
+        case 0x8284:
+        case 0x8285:
+        case 0x1801:
+        case 0x1802:
+        case 0x1902:
+        case 0x1903:
+        case 0x1904:
+        case 0x1905:
+        case 0x1906: return 1;
+            break;
+        case 0x84f9:
+        case 0x8227: return 2;
+            break;
+        case 0x80e0:
+        case 0x1907: return 3;
+            break;
+        default: return 4;
+    }
+    return 4;
+}
+
+
 #endif /* __GLESENUM_H__ */

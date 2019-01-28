@@ -1331,57 +1331,744 @@ GL_APICALL void GL_APIENTRY glPolygonOffset (GLfloat factor, GLfloat units)
 #endif
 }
 
-GL_APICALL void GL_APIENTRY glReadPixels (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels)
+GL_APICALL void GL_APIENTRY glReadPixels (GLint x, GLint y, GLsizei width, GLsizei height,
+    GLenum format, GLenum type, void *pixels)
 {
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glReadPixels, 7, sizeof(x) + sizeof(y) + sizeof(width) + sizeof(height)
+        + sizeof(format) + sizeof(type) + sizeof(pixels) + gles_pixel_channels(format, type)*width*height + 16);
+    DCC_ADD_ARG(x, 0);
+    DCC_ADD_ARG(y, 0);
+    DCC_ADD_ARG(width, 0);
+    DCC_ADD_ARG(height, 0);
+    DCC_ADD_ARG(format, 0);
+    DCC_ADD_ARG(type, 0);
+    DCC_ADD_ARG(pixels, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(pixels, gles_pixel_channels(format, type)*width*height + 16, 6);
+    DCC_RET_ONLY();
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(pixels, gles_pixel_channels(format, type)*width*height + 8, 6);
+    DCC_END_CALL();
+#endif
 }
 
 
-GL_APICALL void GL_APIENTRY glReleaseShaderCompiler (void);
-GL_APICALL void GL_APIENTRY glRenderbufferStorage (GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
-GL_APICALL void GL_APIENTRY glSampleCoverage (GLfloat value, GLboolean invert);
-GL_APICALL void GL_APIENTRY glScissor (GLint x, GLint y, GLsizei width, GLsizei height);
-GL_APICALL void GL_APIENTRY glShaderBinary (GLsizei count, const GLuint *shaders, GLenum binaryformat, const void *binary, GLsizei length);
-GL_APICALL void GL_APIENTRY glShaderSource (GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length);
-GL_APICALL void GL_APIENTRY glStencilFunc (GLenum func, GLint ref, GLuint mask);
-GL_APICALL void GL_APIENTRY glStencilFuncSeparate (GLenum face, GLenum func, GLint ref, GLuint mask);
-GL_APICALL void GL_APIENTRY glStencilMask (GLuint mask);
-GL_APICALL void GL_APIENTRY glStencilMaskSeparate (GLenum face, GLuint mask);
-GL_APICALL void GL_APIENTRY glStencilOp (GLenum fail, GLenum zfail, GLenum zpass);
-GL_APICALL void GL_APIENTRY glStencilOpSeparate (GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
-GL_APICALL void GL_APIENTRY glTexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels);
-GL_APICALL void GL_APIENTRY glTexParameterf (GLenum target, GLenum pname, GLfloat param);
-GL_APICALL void GL_APIENTRY glTexParameterfv (GLenum target, GLenum pname, const GLfloat *params);
-GL_APICALL void GL_APIENTRY glTexParameteri (GLenum target, GLenum pname, GLint param);
-GL_APICALL void GL_APIENTRY glTexParameteriv (GLenum target, GLenum pname, const GLint *params);
-GL_APICALL void GL_APIENTRY glTexSubImage2D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels);
-GL_APICALL void GL_APIENTRY glUniform1f (GLint location, GLfloat v0);
-GL_APICALL void GL_APIENTRY glUniform1fv (GLint location, GLsizei count, const GLfloat *value);
-GL_APICALL void GL_APIENTRY glUniform1i (GLint location, GLint v0);
-GL_APICALL void GL_APIENTRY glUniform1iv (GLint location, GLsizei count, const GLint *value);
-GL_APICALL void GL_APIENTRY glUniform2f (GLint location, GLfloat v0, GLfloat v1);
-GL_APICALL void GL_APIENTRY glUniform2fv (GLint location, GLsizei count, const GLfloat *value);
-GL_APICALL void GL_APIENTRY glUniform2i (GLint location, GLint v0, GLint v1);
-GL_APICALL void GL_APIENTRY glUniform2iv (GLint location, GLsizei count, const GLint *value);
-GL_APICALL void GL_APIENTRY glUniform3f (GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
-GL_APICALL void GL_APIENTRY glUniform3fv (GLint location, GLsizei count, const GLfloat *value);
-GL_APICALL void GL_APIENTRY glUniform3i (GLint location, GLint v0, GLint v1, GLint v2);
-GL_APICALL void GL_APIENTRY glUniform3iv (GLint location, GLsizei count, const GLint *value);
-GL_APICALL void GL_APIENTRY glUniform4f (GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
-GL_APICALL void GL_APIENTRY glUniform4fv (GLint location, GLsizei count, const GLfloat *value);
-GL_APICALL void GL_APIENTRY glUniform4i (GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
-GL_APICALL void GL_APIENTRY glUniform4iv (GLint location, GLsizei count, const GLint *value);
-GL_APICALL void GL_APIENTRY glUniformMatrix2fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-GL_APICALL void GL_APIENTRY glUniformMatrix3fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-GL_APICALL void GL_APIENTRY glUniformMatrix4fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-GL_APICALL void GL_APIENTRY glUseProgram (GLuint program);
-GL_APICALL void GL_APIENTRY glValidateProgram (GLuint program);
-GL_APICALL void GL_APIENTRY glVertexAttrib1f (GLuint index, GLfloat x);
-GL_APICALL void GL_APIENTRY glVertexAttrib1fv (GLuint index, const GLfloat *v);
-GL_APICALL void GL_APIENTRY glVertexAttrib2f (GLuint index, GLfloat x, GLfloat y);
-GL_APICALL void GL_APIENTRY glVertexAttrib2fv (GLuint index, const GLfloat *v);
-GL_APICALL void GL_APIENTRY glVertexAttrib3f (GLuint index, GLfloat x, GLfloat y, GLfloat z);
-GL_APICALL void GL_APIENTRY glVertexAttrib3fv (GLuint index, const GLfloat *v);
-GL_APICALL void GL_APIENTRY glVertexAttrib4f (GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
-GL_APICALL void GL_APIENTRY glVertexAttrib4fv (GLuint index, const GLfloat *v);
-GL_APICALL void GL_APIENTRY glVertexAttribPointer (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
-GL_APICALL void GL_APIENTRY glViewport (GLint x, GLint y, GLsizei width, GLsizei height);
+GL_APICALL void GL_APIENTRY glReleaseShaderCompiler (void)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glReleaseShaderCompiler, 0, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glRenderbufferStorage (GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glRenderbufferStorage, 4, sizeof(target) + sizeof(internalformat)
+        + sizeof(width) + sizeof(height) + 1);
+    DCC_ADD_ARG(target, 0);
+    DCC_ADD_ARG(internalformat, 0);
+    DCC_ADD_ARG(width, 0);
+    DCC_ADD_ARG(height, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+
+GL_APICALL void GL_APIENTRY glSampleCoverage (GLfloat value, GLboolean invert)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glSampleCoverage, 2, sizeof(value) + sizeof(invert) + 1);
+    DCC_ADD_ARG(value, 0);
+    DCC_ADD_ARG(invert, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glScissor (GLint x, GLint y, GLsizei width, GLsizei height)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glScissor, 4, sizeof(x) + sizeof(y)
+        + sizeof(width) + sizeof(height) + 1);
+    DCC_ADD_ARG(x, 0);
+    DCC_ADD_ARG(y, 0);
+    DCC_ADD_ARG(width, 0);
+    DCC_ADD_ARG(height, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glShaderBinary (GLsizei count, const GLuint *shaders,
+    GLenum binaryformat, const void *binary, GLsizei length)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glShaderBinary, 5, sizeof(count) + sizeof(shaders) + sizeof(binaryformat)
+        + sizeof(binary) + sizeof(length) + count*sizeof(*shaders) + length + 1);
+    DCC_ADD_ARG(count, 0);
+    DCC_ADD_ARG(shaders, 1);
+    DCC_ADD_ARG(binaryformat, 0);
+    DCC_ADD_ARG(binary, 1);
+    DCC_ADD_ARG(length, 0);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(shaders, count*sizeof(*shaders), 1);
+    DCC_ADD_APTR_MEM(binary, length, 3);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glShaderSource (GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length)
+{
+    int i, total_len = 0;
+    GLint len[count];
+
+    for (i = 0; i < count; i++) {
+        if (!length) len[i] = GL_STRLEN(string[i]) + 1;
+        else  len[i] = length[i] + 1;
+        total_len += len[i];
+    }
+
+
+}
+
+GL_APICALL void GL_APIENTRY glStencilFunc (GLenum func, GLint ref, GLuint mask)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glStencilFunc, 3, sizeof(func) + sizeof(ref) + sizeof(mask) + 1);
+    DCC_ADD_ARG(func, 0);
+    DCC_ADD_ARG(ref, 0);
+    DCC_ADD_ARG(mask, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glStencilFuncSeparate (GLenum face, GLenum func, GLint ref, GLuint mask)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glStencilFuncSeparate, 4, sizeof(face) + sizeof(func) + sizeof(ref) + sizeof(mask) + 1);
+    DCC_ADD_ARG(face, 0);
+    DCC_ADD_ARG(func, 0);
+    DCC_ADD_ARG(ref, 0);
+    DCC_ADD_ARG(mask, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+
+GL_APICALL void GL_APIENTRY glStencilMask (GLuint mask)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glStencilMask, 3, sizeof(mask) + 1);
+    DCC_ADD_ARG(mask, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+
+GL_APICALL void GL_APIENTRY glStencilMaskSeparate (GLenum face, GLuint mask)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glStencilMaskSeparate, 2, sizeof(face) + sizeof(mask) + 1);
+    DCC_ADD_ARG(face, 0);
+    DCC_ADD_ARG(mask, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glStencilOp (GLenum fail, GLenum zfail, GLenum zpass)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glStencilOp, 3, sizeof(fail) + sizeof(zfail) + sizeof(zpass) + 1);
+    DCC_ADD_ARG(fail, 0);
+    DCC_ADD_ARG(zfail, 0);
+    DCC_ADD_ARG(zpass, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glStencilOpSeparate (GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glStencilOpSeparate, 4, sizeof(face) + sizeof(sfail) + sizeof(dpfail)
+        + sizeof(dppass) + 1);
+    DCC_ADD_ARG(face, 0);
+    DCC_ADD_ARG(sfail, 0);
+    DCC_ADD_ARG(dpfail, 0);
+    DCC_ADD_ARG(dppass, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glTexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width,
+    GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glTexImage2D, 9, sizeof(target) + sizeof(level) + sizeof(internalformat)
+        + sizeof(width) + sizeof(height) + sizeof(border) + sizeof(format) + sizeof(type)
+        + sizeof(pixels) + gles_pixel_channels(format, type)*width*height + 16);
+    DCC_ADD_ARG(target, 0);
+    DCC_ADD_ARG(level, 0);
+    DCC_ADD_ARG(internalformat, 0);
+    DCC_ADD_ARG(width, 0);
+    DCC_ADD_ARG(height, 0);
+    DCC_ADD_ARG(border, 0);
+    DCC_ADD_ARG(format, 0);
+    DCC_ADD_ARG(type, 0);
+    DCC_ADD_ARG(pixels, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(pixels, gles_pixel_channels(format, type)*width*height+16, 8);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glTexParameterf (GLenum target, GLenum pname, GLfloat param)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glTexParameterf, 3, sizeof(target) + sizeof(pname) + sizeof(param) + 1);
+    DCC_ADD_ARG(target, 0);
+    DCC_ADD_ARG(pname, 0);
+    DCC_ADD_ARG(param, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+
+GL_APICALL void GL_APIENTRY glTexParameterfv (GLenum target, GLenum pname, const GLfloat *params)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glTexParameterfv, 3, sizeof(target) + sizeof(pname) + sizeof(params)
+        + sizeof(*params) + 1);
+    DCC_ADD_ARG(target, 0);
+    DCC_ADD_ARG(pname, 0);
+    DCC_ADD_ARG(params, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(params, sizeof(*params), 2);
+    DCC_RET_ONLY();
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, sizeof(*params), 2);
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glTexParameteri (GLenum target, GLenum pname, GLint param)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glTexParameteri, 3, sizeof(target) + sizeof(pname) + sizeof(param) + 1);
+    DCC_ADD_ARG(target, 0);
+    DCC_ADD_ARG(pname, 0);
+    DCC_ADD_ARG(param, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+
+GL_APICALL void GL_APIENTRY glTexParameteriv (GLenum target, GLenum pname, const GLint *params)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glTexParameteriv, 3, sizeof(target) + sizeof(pname) + sizeof(params)
+        + sizeof(*params) + 1);
+    DCC_ADD_ARG(target, 0);
+    DCC_ADD_ARG(pname, 0);
+    DCC_ADD_ARG(params, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(params, sizeof(*params), 2);
+    DCC_RET_ONLY();
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, sizeof(*params), 2);
+    DCC_END_CALL();
+#endif
+}
+
+
+GL_APICALL void GL_APIENTRY glTexSubImage2D (GLenum target, GLint level, GLint xoffset, GLint yoffset,
+    GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glTexSubImage2D, 9, sizeof(target) + sizeof(level) + sizeof(xoffset)
+        + sizeof(yoffset)  + sizeof(width) + sizeof(height) + sizeof(format) + sizeof(type)
+        + sizeof(pixels) + gles_pixel_channels(format, type)*width*height + 16);
+    DCC_ADD_ARG(target, 0);
+    DCC_ADD_ARG(level, 0);
+    DCC_ADD_ARG(xoffset, 0);
+    DCC_ADD_ARG(yoffset, 0);
+    DCC_ADD_ARG(width, 0);
+    DCC_ADD_ARG(height, 0);
+    DCC_ADD_ARG(format, 0);
+    DCC_ADD_ARG(type, 0);
+    DCC_ADD_ARG(pixels, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(pixels, gles_pixel_channels(format, type)*width*height+16, 8);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+
+GL_APICALL void GL_APIENTRY glUniform1f (GLint location, GLfloat v0)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniform1f, 2, sizeof(location) + sizeof(v0) + 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(v0, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glUniform1fv (GLint location, GLsizei count, const GLfloat *value)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniform1fv, 3, sizeof(location) + sizeof(count) + sizeof(value)
+        + count*sizeof(*value)+ 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(count, 0);
+    DCC_ADD_ARG(value, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(value, count*sizeof(*value), 2);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glUniform1i (GLint location, GLint v0)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniform1i, 2, sizeof(location) + sizeof(v0) + 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(v0, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glUniform1iv (GLint location, GLsizei count, const GLint *value)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniform1iv, 3, sizeof(location) + sizeof(count) + sizeof(value)
+        + count*sizeof(*value)+ 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(count, 0);
+    DCC_ADD_ARG(value, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(value, count*sizeof(*value), 2);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glUniform2f (GLint location, GLfloat v0, GLfloat v1)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniform2f, 3, sizeof(location) + 2*sizeof(v0) + 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(v0, 0);
+    DCC_ADD_ARG(v1, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glUniform2fv (GLint location, GLsizei count, const GLfloat *value)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniform2fv, 3, sizeof(location) + sizeof(count) + sizeof(value)
+        + 2*count*sizeof(*value)+ 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(count, 0);
+    DCC_ADD_ARG(value, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(value, 2*count*sizeof(*value), 2);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glUniform2i (GLint location, GLint v0, GLint v1)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniform2i, 3, sizeof(location) + 2*sizeof(v0) + 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(v0, 0);
+    DCC_ADD_ARG(v1, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glUniform2iv (GLint location, GLsizei count, const GLint *value)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniform2iv, 3, sizeof(location) + sizeof(count) + sizeof(value)
+        + 2*count*sizeof(*value)+ 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(count, 0);
+    DCC_ADD_ARG(value, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(value, 2*count*sizeof(*value), 2);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glUniform3f (GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniform3f, 4, sizeof(location) + 3*sizeof(v0) + 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(v0, 0);
+    DCC_ADD_ARG(v1, 0);
+    DCC_ADD_ARG(v2, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glUniform3fv (GLint location, GLsizei count, const GLfloat *value)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniform3fv, 3, sizeof(location) + sizeof(count) + sizeof(value)
+        + 3*count*sizeof(*value)+ 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(count, 0);
+    DCC_ADD_ARG(value, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(value, 3*count*sizeof(*value), 2);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glUniform3i (GLint location, GLint v0, GLint v1, GLint v2)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniform3i, 4, sizeof(location) + 3*sizeof(v0) + 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(v0, 0);
+    DCC_ADD_ARG(v1, 0);
+    DCC_ADD_ARG(v2, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glUniform3iv (GLint location, GLsizei count, const GLint *value)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniform3iv, 3, sizeof(location) + sizeof(count) + sizeof(value)
+        + 3*count*sizeof(*value)+ 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(count, 0);
+    DCC_ADD_ARG(value, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(value, 3*count*sizeof(*value), 2);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+
+GL_APICALL void GL_APIENTRY glUniform4f (GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniform4f, 5, sizeof(location) + 4*sizeof(v0) + 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(v0, 0);
+    DCC_ADD_ARG(v1, 0);
+    DCC_ADD_ARG(v2, 0);
+    DCC_ADD_ARG(v3, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glUniform4fv (GLint location, GLsizei count, const GLfloat *value)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniform4fv, 3, sizeof(location) + sizeof(count) + sizeof(value)
+        + 4*count*sizeof(*value)+ 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(count, 0);
+    DCC_ADD_ARG(value, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(value, 4*count*sizeof(*value), 2);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glUniform4i (GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniform4i, 5, sizeof(location) + 4*sizeof(v0) + 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(v0, 0);
+    DCC_ADD_ARG(v1, 0);
+    DCC_ADD_ARG(v2, 0);
+    DCC_ADD_ARG(v3, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glUniform4iv (GLint location, GLsizei count, const GLint *value)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniform4iv, 3, sizeof(location) + sizeof(count) + sizeof(value)
+        + 4*count*sizeof(*value)+ 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(count, 0);
+    DCC_ADD_ARG(value, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(value, 4*count*sizeof(*value), 2);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+
+GL_APICALL void GL_APIENTRY glUniformMatrix2fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniformMatrix2fv, 4, sizeof(location) + sizeof(count)
+        + sizeof(transpose) + sizeof(value) + 2*2*count*sizeof(*value)+ 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(count, 0);
+    DCC_ADD_ARG(transpose, 0);
+    DCC_ADD_ARG(value, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(value, 2*2*count*sizeof(*value), 3);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glUniformMatrix3fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniformMatrix3fv, 4, sizeof(location) + sizeof(count)
+        + sizeof(transpose) + sizeof(value) + 3*3*count*sizeof(*value)+ 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(count, 0);
+    DCC_ADD_ARG(transpose, 0);
+    DCC_ADD_ARG(value, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(value, 3*3*count*sizeof(*value), 3);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glUniformMatrix4fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUniformMatrix4fv, 4, sizeof(location) + sizeof(count)
+        + sizeof(transpose) + sizeof(value) + 4*4*count*sizeof(*value)+ 1);
+    DCC_ADD_ARG(location, 0);
+    DCC_ADD_ARG(count, 0);
+    DCC_ADD_ARG(transpose, 0);
+    DCC_ADD_ARG(value, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(value, 4*4*count*sizeof(*value), 3);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glUseProgram (GLuint program)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glUseProgram, 1, sizeof(program) + 1);
+    DCC_ADD_ARG(program, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glValidateProgram (GLuint program)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glValidateProgram, 1, sizeof(program) + 1);
+    DCC_ADD_ARG(program, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+
+GL_APICALL void GL_APIENTRY glVertexAttrib1f (GLuint index, GLfloat x)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glVertexAttrib1f, 2, sizeof(index) + sizeof(x) + 1);
+    DCC_ADD_ARG(index, 0);
+    DCC_ADD_ARG(x, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glVertexAttrib1fv (GLuint index, const GLfloat *v)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glVertexAttrib1fv, 2, sizeof(index) + sizeof(v) + sizeof(*v)+ 1);
+    DCC_ADD_ARG(index, 0);
+    DCC_ADD_ARG(v, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(v, sizeof(*v), 1);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glVertexAttrib2f (GLuint index, GLfloat x, GLfloat y)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glVertexAttrib2f, 3, sizeof(index) + 2*sizeof(x) + 1);
+    DCC_ADD_ARG(index, 0);
+    DCC_ADD_ARG(x, 0);
+    DCC_ADD_ARG(y, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glVertexAttrib2fv (GLuint index, const GLfloat *v)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glVertexAttrib2fv, 2, sizeof(index) + sizeof(v) + 2*sizeof(*v)+ 1);
+    DCC_ADD_ARG(index, 0);
+    DCC_ADD_ARG(v, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(v, 2*sizeof(*v), 1);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glVertexAttrib3f (GLuint index, GLfloat x, GLfloat y, GLfloat z)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glVertexAttrib3f, 4, sizeof(index) + 3*sizeof(x) + 1);
+    DCC_ADD_ARG(index, 0);
+    DCC_ADD_ARG(x, 0);
+    DCC_ADD_ARG(y, 0);
+    DCC_ADD_ARG(z, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+
+GL_APICALL void GL_APIENTRY glVertexAttrib3fv (GLuint index, const GLfloat *v)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glVertexAttrib3fv, 2, sizeof(index) + sizeof(v) + 3*sizeof(*v)+ 1);
+    DCC_ADD_ARG(index, 0);
+    DCC_ADD_ARG(v, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(v, 3*sizeof(*v), 1);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glVertexAttrib4f (GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glVertexAttrib4f, 5, sizeof(index) + 4*sizeof(x) + 1);
+    DCC_ADD_ARG(index, 0);
+    DCC_ADD_ARG(x, 0);
+    DCC_ADD_ARG(y, 0);
+    DCC_ADD_ARG(z, 0);
+    DCC_ADD_ARG(w, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+
+GL_APICALL void GL_APIENTRY glVertexAttrib4fv (GLuint index, const GLfloat *v)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glVertexAttrib4fv, 2, sizeof(index) + sizeof(v) + 4*sizeof(*v)+ 1);
+    DCC_ADD_ARG(index, 0);
+    DCC_ADD_ARG(v, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(v, 4*sizeof(*v), 1);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+
+GL_APICALL void GL_APIENTRY glVertexAttribPointer (GLuint index, GLint size, GLenum type,
+    GLboolean normalized, GLsizei stride, const void *pointer)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glVertexAttribPointer, 6, sizeof(index) + sizeof(size) + sizeof(type)
+        + sizeof(normalized) + sizeof(stride) + sizeof(pointer)
+        + (((long)pointer < 256)?0:(4<<10)) + 16);
+    DCC_ADD_ARG(index, 0);
+    DCC_ADD_ARG(size, 0);
+    DCC_ADD_ARG(type, 0);
+    DCC_ADD_ARG(normalized, 0);
+    DCC_ADD_ARG(stride, 0);
+    DCC_ADD_ARG(pointer, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(pointer, (((long)pointer < 256)?0:(4<<10)), 5);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+GL_APICALL void GL_APIENTRY glViewport (GLint x, GLint y, GLsizei width, GLsizei height)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glViewport, 4, 2*sizeof(x) + 2*sizeof(width) + 1);
+    DCC_ADD_ARG(x, 0);
+    DCC_ADD_ARG(y, 0);
+    DCC_ADD_ARG(width, 0);
+    DCC_ADD_ARG(height, 0);
+    DCC_ARG_OVER();
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
+
