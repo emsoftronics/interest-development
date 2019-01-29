@@ -6,6 +6,27 @@
 
 //static ccontext_t context = {0};
 
+
+const char *teststrs[] = {
+    "One",
+    "Two",
+    "Three",
+};
+
+
+void server_print_list( char **strs, int count)
+{
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(65, 2, sizeof(strs) + sizeof(count) + (count + 1)*sizeof(strs) +count*20 + 4);
+    DCC_ADD_ARG(strs, 2);
+    DCC_ADD_ARG(count, 0);
+    DCC_ARG_OVER();
+    DCC_ADD_MEM_ARR(strs, count, ((int *)NULL), 0);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
+}
+
 char *my_reverse(char *x, int begin, int end)
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
@@ -88,6 +109,7 @@ int main(int argc, char **argv)
     printf("After reverse: %s\n", mem+1);
     printf("end After reverse: %s\n", end - 10 );
 
+    server_print_list(teststrs, sizeof(teststrs)/ sizeof(char *));
     } while (getchar() != (int)'x');
     return 0;
 }

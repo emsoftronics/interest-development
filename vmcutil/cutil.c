@@ -261,6 +261,15 @@ int watch_fd(int fd, int timeout)
     return poll (&pfd, 1, timeout);
 }
 
+int check_connection_termination(int sockfd)
+{
+#ifndef POLLRDHUP
+#define POLLRDHUP       0x2000
+#endif
+    struct pollfd pfd = { sockfd, POLLRDHUP, 0 };
+    return poll (&pfd, 1, 0);
+}
+
 int wait_for_response(int fd, int timeout, void *resp, int buflen)
 {
     int status = watch_fd(fd, timeout);

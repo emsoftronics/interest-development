@@ -5,6 +5,13 @@
 #include <string.h>
 #include <math.h>
 
+
+static void print_str_arr( char **strs, int count)
+{
+    int i;
+    for (i = 0; i < count; i++) printf("%2d.  %s\n", i+1, strs[i]);
+}
+
 static char *reverse(char *x, int begin, int end)
 {
    char c;
@@ -23,6 +30,9 @@ static void fcall_handler(int fid, int argc, void **args, void*ret, uint32_t *re
 {
     long double t1, t2;
     switch (fid) {
+    case 65:
+        print_str_arr(args[0], *((int*)args[1]));
+        break;
     case 66:
         *(((int *)ret)) = strcmp(args[0], args[1]);
         break;

@@ -54,23 +54,24 @@
 
 #define UPDATE_ARRAY_OF_MEM(_ctx, _arg, _count, _lenptr, _aindex)                       \
                        _argoff =  ((fcall_hdr_t *)(_ctx->smemref))->endoff;             \
-                       ((fcall_hdr_t *)(_ctx->smemref))->endoff += (_count)*sizeof(void*); \
                        if ((long)(_arg) < CHARG_OFFSET(_ctx)) {                         \
                         memcpy((char*)(_ctx->smemref) + CHARGS(_ctx)[_aindex].offset,   \
                             &(_arg), sizeof(void *));                                   \
                        } else {                                                         \
                             void **ptr = (void **) ((char*)(_ctx->smemref) + _argoff);  \
                             int _len = 0;                                               \
-                            CHARGS(_ctx)[_aindex].length = (_count) * sizeof(void*);    \
+                       ((fcall_hdr_t *)(_ctx->smemref))->endoff += (_count + 1)*sizeof(void*); \
                             memcpy((char*)(_ctx->smemref) + CHARGS(_ctx)[_aindex].offset,\
                             &_argoff, sizeof(void *));                                  \
-                            for (_tloop = 0; _tloop < (_count); _tloop++) {             \
-                                _len = ((long)(_lenptr) > 0) ? _lenptr[_tloop]          \
-                                : strlen(_arg[_tloop]) + 1;                             \
+                            for (_tloop = 0; _tloop <= (_count); _tloop++) {             \
                                 _argoff =  ((fcall_hdr_t *)(_ctx->smemref))->endoff;    \
+                                if ((_arg[_tloop] == NULL) || (_tloop >= _count)) {     \
+                                    ptr[_tloop] = 0;} else  {                           \
+                                if ((long)(_lenptr) > 0) _len = (int)_lenptr[_tloop] ;  \
+                                else _len = strlen(_arg[_tloop]) + 1;                   \
                                 memcpy((char*)(_ctx->smemref) + _argoff,                \
-                                (void *)_arg[_tloop], _len);  ptr[_tloop] = _argoff;    \
-                                ((fcall_hdr_t *)(_ctx->smemref))->endoff += _len; }}
+                                (void *)_arg[_tloop], _len);  ptr[_tloop] = (void *)_argoff;   \
+                                ((fcall_hdr_t *)(_ctx->smemref))->endoff += _len; }}}
 
 #ifdef __cplusplus
 extern "C" {
@@ -123,19 +124,7 @@ extern ccontext_t *get_client_context(ccontext_t *ctx, const char *servername, i
 extern void *call_function(ccontext_t *ctx);
 extern void release_client_context(ccontext_t *ctx);
 
-static inline void *get_arg_ptr(ccontext_t *ctx, int index)
-{
-    fcall_hdr_t *fhdr = ctx->smemref;
-    void *arg_ptr = ((char *)fhdr)+fhdr->arg[index].offset;
-    if (fhdr->arg[index].type) {
-        if (*((int32_t *)arg_ptr) < (long)(fhdr->arg)-(long)fhdr
-                + (fhdr->argc * sizeof(datamem_t))-1)
-            return (void *)(*((long *)arg_ptr));
-        else return ((char *)fhdr) + *((uint32_t *)arg_ptr);
-    }
-
-    return arg_ptr;
-}
+extern void *get_arg_ptr(ccontext_t *ctx, int index);
 
 #ifdef DEFAULT_CLIENT_CONTEXT
 #define DCC_QUOTE(name) #name
@@ -156,13 +145,18 @@ extern ccontext_t *def_client(void);
 #define DCC_ADD_APTR_MEM(_arg, _size, _aindex)                                          \
                         UPDATE_PARG_MEM(_ctx, _arg, (_size), (_aindex)) while(0)
 
+#define DCC_ADD_MEM_ARR(_arg, _count, _lenptr, _aindex)                              \
+                UPDATE_ARRAY_OF_MEM(_ctx, _arg, _count, _lenptr, _aindex) while(0)
+
 #define DCC_UPDATE_NON_CONST_PTR_ON_RET(_dstptr, _size, _aindex)                        \
                         if ((long)(_dstptr) > CHARG_OFFSET(_ctx))                       \
                         memcpy((void *)(_dstptr), get_arg_ptr(_ctx, _aindex), _size)
 
-#define DCC_RET_VAL(_retvar) _retvar = *((typeof(_retvar) *)call_function(_ctx))
+#define DCC_RET_VAL(_retvar) void *tptr = call_function(_ctx);                  \
+                        if(!tptr) break;                                        \
+                        else _retvar = *((typeof(_retvar) *)tptr); while(0)
 
-#define DCC_RET_ONLY()  call_function(_ctx)
+#define DCC_RET_ONLY()  if (call_function(_ctx) == NULL) break
 
 #define DCC_END_CALL()  release_client_context(_ctx); } while(0)
 #endif

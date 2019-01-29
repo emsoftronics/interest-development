@@ -136,6 +136,7 @@ static int send_call(ccontext_t *ctx)
    ctx->frame.qid = get_rnd_no(1,0x7f);
    ctx->frame.offset = 0;
    ctx->frame.size = ctx->smemsize;
+   if (check_connection_termination(ctx->sockfd) > 0) goto ErrorToReset;
    clear_rx_buffer(ctx->sockfd);
    if (send_data(ctx->sockfd, &(ctx->frame), sizeof(qframe_t)) != sizeof(qframe_t))
        goto ErrorToReset;
@@ -343,3 +344,28 @@ void release_client_context(ccontext_t *ctx)
     else ctx->smemsize = pagesize;
     unlock_context(ctx);
 }
+
+void *get_arg_ptr(ccontext_t *ctx, int index)
+{
+    fcall_hdr_t *fhdr = ctx->smemref;
+    void *arg_ptr = ((char *)fhdr)+fhdr->arg[index].offset;
+    if (fhdr->arg[index].type) {
+        if (fhdr->arg[index].type == 2)  {
+            void **ptr = (void **) (((char *)fhdr) + *((uint32_t *)arg_ptr));
+            int i = 0;
+            for(i = 0; ptr[i] != NULL; i++)
+                ptr[i] = (void *)(((char *)fhdr)+(long)ptr[i]);
+                fhdr->arg[index].type = 1;
+            return ptr;
+        }
+        else {
+            if (*((int32_t *)arg_ptr) < (long)(fhdr->arg)-(long)fhdr
+                + (fhdr->argc * sizeof(datamem_t))-1)
+                return (void *)(*((long *)arg_ptr));
+            else return ((char *)fhdr) + *((uint32_t *)arg_ptr);
+        }
+    }
+
+    return arg_ptr;
+}
+

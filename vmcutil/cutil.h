@@ -17,6 +17,7 @@ extern void unmap_smem(void *maped_mem, unsigned long size);
 extern int send_fd(int sockfd, int sfd);
 extern int rcv_fd(int sockfd);
 extern int watch_fd(int fd, int timeout);
+extern int check_connection_termination(int sockfd);
 extern int wait_for_response(int fd, int timeout, void *resp, int buflen);
 extern unsigned int get_rnd_no(int minlimit, int maxlimit);
 extern int is_accessible_dir(const char *dirpath);
