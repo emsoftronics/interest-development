@@ -1427,16 +1427,19 @@ GL_APICALL void GL_APIENTRY glShaderBinary (GLsizei count, const GLuint *shaders
 
 GL_APICALL void GL_APIENTRY glShaderSource (GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length)
 {
-    int i, total_len = 0;
-    GLint len[count];
-
-    for (i = 0; i < count; i++) {
-        if (!length) len[i] = GL_STRLEN(string[i]) + 1;
-        else  len[i] = length[i] + 1;
-        total_len += len[i];
-    }
-
-
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(GLESv2_glShaderSource, 4, sizeof(shader) + sizeof(count) + sizeof(string)
+        + sizeof(length) + count*(sizeof(*length) + sizeof(string) + 80) +  1);
+    DCC_ADD_ARG(shader, 0);
+    DCC_ADD_ARG(count, 0);
+    DCC_ADD_ARG(string, 2);
+    DCC_ADD_ARG(length, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(length, count*sizeof(*length), 3);
+    DCC_ADD_MEM_ARR(string, count, length, 2);
+    DCC_RET_ONLY();
+    DCC_END_CALL();
+#endif
 }
 
 GL_APICALL void GL_APIENTRY glStencilFunc (GLenum func, GLint ref, GLuint mask)

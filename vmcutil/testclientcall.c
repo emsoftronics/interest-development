@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "cutil.h"
 #include <string.h>
 #include "vmcutil.h"
@@ -109,7 +110,7 @@ int main(int argc, char **argv)
     printf("After reverse: %s\n", mem+1);
     printf("end After reverse: %s\n", end - 10 );
 
-    server_print_list(teststrs, sizeof(teststrs)/ sizeof(char *));
+    server_print_list((char **)teststrs, sizeof(teststrs)/ sizeof(char *));
     } while (getchar() != (int)'x');
     return 0;
 }

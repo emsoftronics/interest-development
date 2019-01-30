@@ -96,9 +96,9 @@ class Demo : public Canvas
             free(color);
             free(vIndices);
             */
-            //mVertex = Geometry::loadCube();
+            mVertex = Geometry::loadCube();
             //mVertex = Geometry::loadTriangle();
-            mVertex = Geometry::loadSquare();
+            //mVertex = Geometry::loadSquare();
         }
 };
 
@@ -106,7 +106,7 @@ void Demo::update (float totalTime )
 {
     //uScale = glm::scale(glm::mat4(1.0),  glm::vec3(100.0));
 
-    //uRotate = glm::rotate(glm::mat4(1.0), glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    uRotate = glm::rotate(uRotate, glm::radians(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     //uTranslate[4] = glm::vec4(0.0, 0.0, -0.5, 1.0);
 //    uTranslate = glm::translate(glm::mat4(1.0),  glm::vec3(0.0, 0.0, -300.0));
 

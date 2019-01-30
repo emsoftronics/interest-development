@@ -68,7 +68,7 @@
                                 if ((_arg[_tloop] == NULL) || (_tloop >= _count)) {     \
                                     ptr[_tloop] = 0;} else  {                           \
                                 if ((long)(_lenptr) > 0) _len = (int)_lenptr[_tloop] ;  \
-                                else _len = strlen(_arg[_tloop]) + 1;                   \
+                                else _len = strlen((char *)_arg[_tloop]) + 1;           \
                                 memcpy((char*)(_ctx->smemref) + _argoff,                \
                                 (void *)_arg[_tloop], _len);  ptr[_tloop] = (void *)_argoff;   \
                                 ((fcall_hdr_t *)(_ctx->smemref))->endoff += _len; }}}
