@@ -21,6 +21,43 @@
 #define GL_STRLEN(s) (((s)==NULL)?0:strlen(s))
 
 typedef enum {
+    EGL_eglGetError = 0x40,
+    EGL_eglGetDisplay,
+    EGL_eglInitialize,
+    EGL_eglTerminate,
+    EGL_eglQueryString,
+    EGL_eglGetProcAddress,
+    EGL_eglGetConfigs,
+    EGL_eglChooseConfig,
+    EGL_eglGetConfigAttrib,
+    EGL_eglCreateWindowSurface,
+    EGL_eglCreatePixmapSurface,
+    EGL_eglCreatePbufferSurface,
+    EGL_eglDestroySurface,
+    EGL_eglQuerySurface,
+    EGL_eglCreateContext,
+    EGL_eglDestroyContext,
+    EGL_eglMakeCurrent,
+    EGL_eglGetCurrentContext,
+    EGL_eglGetCurrentSurface,
+    EGL_eglGetCurrentDisplay,
+    EGL_eglQueryContext,
+    EGL_eglWaitGL,
+    EGL_eglWaitNative,
+    EGL_eglSwapBuffers,
+    EGL_eglCopyBuffers,
+    EGL_eglSwapInterval,
+    EGL_eglSurfaceAttrib,
+    EGL_eglBindTexImage,
+    EGL_eglReleaseTexImage,
+    EGL_eglCreatePbufferFromClientBuffer,
+    EGL_eglBindAPI,
+    EGL_eglQueryAPI,
+    EGL_eglWaitClient,
+    EGL_eglReleaseThread
+}egl_t;
+
+typedef enum {
     GLESv2_glActiveTexture = 0x200,
     GLESv2_glBindBuffer,
     GLESv2_glBindTexture,

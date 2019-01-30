@@ -23,6 +23,128 @@ static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *r
 {
     static void *vertex_buffer = NULL;
     switch (fid) {
+        case EGL_eglGetError:
+            EGLAPI EGLint EGLAPIENTRY eglGetError(void);
+            break;
+        case EGL_eglGetDisplay:
+            EGLAPI EGLDisplay EGLAPIENTRY eglGetDisplay(EGLNativeDisplayType display_id);
+            break;
+        case EGL_eglInitialize:
+            EGLAPI EGLBoolean EGLAPIENTRY eglInitialize(EGLDisplay dpy, EGLint *major, EGLint *minor);
+            break;
+        case EGL_eglTerminate:
+            EGLAPI EGLBoolean EGLAPIENTRY eglTerminate(EGLDisplay dpy);
+            break;
+        case EGL_eglQueryString:
+            EGLAPI const char * EGLAPIENTRY eglQueryString(EGLDisplay dpy, EGLint name);
+            break;
+        case EGL_eglGetProcAddress:
+            EGLAPI __eglMustCastToProperFunctionPointerType EGLAPIENTRY
+       eglGetProcAddress(const char *procname);
+            break;
+        case EGL_eglGetConfigs:
+            EGLAPI EGLBoolean EGLAPIENTRY eglGetConfigs(EGLDisplay dpy, EGLConfig *configs,
+                         EGLint config_size, EGLint *num_config);
+            break;
+        case EGL_eglChooseConfig:
+            EGLAPI EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list,
+                           EGLConfig *configs, EGLint config_size,
+                           EGLint *num_config);
+            break;
+        case EGL_eglGetConfigAttrib:
+            EGLAPI EGLBoolean EGLAPIENTRY eglGetConfigAttrib(EGLDisplay dpy, EGLConfig config,
+                              EGLint attribute, EGLint *value);
+            break;
+        case EGL_eglCreateWindowSurface:
+            EGLAPI EGLSurface EGLAPIENTRY eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config,
+                                  EGLNativeWindowType win,
+                                  const EGLint *attrib_list);
+            break;
+        case EGL_eglCreatePixmapSurface:
+            EGLAPI EGLSurface EGLAPIENTRY eglCreatePixmapSurface(EGLDisplay dpy, EGLConfig config,
+                                  EGLNativePixmapType pixmap,
+                                  const EGLint *attrib_list);
+            break;
+        case EGL_eglCreatePbufferSurface:
+            EGLAPI EGLSurface EGLAPIENTRY eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config,
+                                   const EGLint *attrib_list);
+            break;
+        case EGL_eglDestroySurface:
+            EGLAPI EGLBoolean EGLAPIENTRY eglDestroySurface(EGLDisplay dpy, EGLSurface surface);
+            break;
+        case EGL_eglQuerySurface:
+            EGLAPI EGLBoolean EGLAPIENTRY eglQuerySurface(EGLDisplay dpy, EGLSurface surface,
+                           EGLint attribute, EGLint *value);
+            break;
+        case EGL_eglCreateContext:
+            EGLAPI EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config,
+                            EGLContext share_context,
+                            const EGLint *attrib_list);
+            break;
+        case EGL_eglDestroyContext:
+            EGLAPI EGLBoolean EGLAPIENTRY eglDestroyContext(EGLDisplay dpy, EGLContext ctx);
+            break;
+        case EGL_eglMakeCurrent:
+            EGLAPI EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw,
+                          EGLSurface read, EGLContext ctx);
+            break;
+        case EGL_eglGetCurrentContext:
+            EGLAPI EGLContext EGLAPIENTRY eglGetCurrentContext(void);
+            break;
+        case EGL_eglGetCurrentSurface:
+            EGLAPI EGLSurface EGLAPIENTRY eglGetCurrentSurface(EGLint readdraw);
+            break;
+        case EGL_eglGetCurrentDisplay:
+            EGLAPI EGLDisplay EGLAPIENTRY eglGetCurrentDisplay(void);
+            break;
+        case EGL_eglQueryContext:
+            EGLAPI EGLBoolean EGLAPIENTRY eglQueryContext(EGLDisplay dpy, EGLContext ctx,
+                           EGLint attribute, EGLint *value);
+            break;
+        case EGL_eglWaitGL:
+            EGLAPI EGLBoolean EGLAPIENTRY eglWaitGL(void);
+            break;
+        case EGL_eglWaitNative:
+            EGLAPI EGLBoolean EGLAPIENTRY eglWaitNative(EGLint engine);
+            break;
+        case EGL_eglSwapBuffers:
+            EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surface);
+            break;
+        case EGL_eglCopyBuffers:
+            EGLAPI EGLBoolean EGLAPIENTRY eglCopyBuffers(EGLDisplay dpy, EGLSurface surface,
+                          EGLNativePixmapType target);
+            break;
+        case EGL_eglSwapInterval:
+            EGLAPI EGLBoolean EGLAPIENTRY eglSwapInterval(EGLDisplay dpy, EGLint interval);
+            break;
+        case EGL_eglSurfaceAttrib:
+            EGLAPI EGLBoolean EGLAPIENTRY eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface,
+                            EGLint attribute, EGLint value);
+            break;
+        case EGL_eglBindTexImage:
+            EGLAPI EGLBoolean EGLAPIENTRY eglBindTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer);
+            break;
+        case EGL_eglReleaseTexImage:
+            EGLAPI EGLBoolean EGLAPIENTRY eglReleaseTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer);
+            break;
+        case EGL_eglCreatePbufferFromClientBuffer:
+            EGLAPI EGLSurface EGLAPIENTRY eglCreatePbufferFromClientBuffer(
+              EGLDisplay dpy, EGLenum buftype, EGLClientBuffer buffer,
+              EGLConfig config, const EGLint *attrib_list);
+            break;
+        case EGL_eglBindAPI:
+            EGLAPI EGLBoolean EGLAPIENTRY eglBindAPI(EGLenum api);
+            break;
+        case EGL_eglQueryAPI:
+            EGLAPI EGLenum EGLAPIENTRY eglQueryAPI(void);
+            break;
+        case EGL_eglWaitClient:
+            EGLAPI EGLBoolean EGLAPIENTRY eglWaitClient(void);
+            break;
+        case EGL_eglReleaseThread:
+            EGLAPI EGLBoolean EGLAPIENTRY eglReleaseThread(void);
+            break;
+        /*************GLESv2 function cases ***************************/
         case GLESv2_glActiveTexture:
             glActiveTexture (G_EN(0));
             break;
@@ -88,11 +210,11 @@ static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *r
             break;
         case GLESv2_glCompressedTexImage2D:
             glCompressedTexImage2D (G_EN(0), G_IN(1), G_EN(2), G_SII(3), G_SII(4), G_IN(5),
-                G_SII(6), (const void *)G_VPTR(7));
+                    G_SII(6), (const void *)G_VPTR(7));
             break;
         case GLESv2_glCompressedTexSubImage2D:
             glCompressedTexSubImage2D (G_EN(0), G_IN(1), G_IN(2), G_IN(3), G_SII(4), G_SII(5),
-                G_EN(6), G_SII(7), (const void *)G_VPTR(8));
+                    G_EN(6), G_SII(7), (const void *)G_VPTR(8));
             break;
         case GLESv2_glCopyTexImage2D:
             glCopyTexImage2D (G_EN(0), G_IN(1), G_EN(2), G_IN(3), G_IN(4), G_SII(5), G_SII(6), G_IN(7));
@@ -191,11 +313,11 @@ static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *r
             break;
         case GLESv2_glGetActiveAttrib:
             glGetActiveAttrib (G_UI(0), G_UI(1), G_SII(2), (GLsizei *)G_VPTR(3),
-                (GLint *)G_VPTR(4), (GLenum *)G_VPTR(5), (GLchar *)G_VPTR(6));
+                    (GLint *)G_VPTR(4), (GLenum *)G_VPTR(5), (GLchar *)G_VPTR(6));
             break;
         case GLESv2_glGetActiveUniform:
             glGetActiveUniform (G_UI(0), G_UI(1), G_SII(2), (GLsizei *)G_VPTR(3),
-                (GLint *)G_VPTR(4), (GLenum *)G_VPTR(5), (GLchar *)G_VPTR(6));
+                    (GLint *)G_VPTR(4), (GLenum *)G_VPTR(5), (GLchar *)G_VPTR(6));
             break;
         case GLESv2_glGetAttachedShaders:
             glGetAttachedShaders (G_UI(0), G_SII(1), (GLsizei *)G_VPTR(2), (GLuint *)G_VPTR(3));
@@ -346,7 +468,7 @@ static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *r
             break;
         case GLESv2_glTexImage2D:
             glTexImage2D (G_EN(0), G_IN(1), G_IN(2), G_SII(3), G_SII(4), G_IN(5),
-                G_EN(6), G_EN(7), (const void *)G_VPTR(8));
+                    G_EN(6), G_EN(7), (const void *)G_VPTR(8));
             break;
         case GLESv2_glTexParameterf:
             glTexParameterf (G_EN(0), G_EN(1), G_FL(2));
@@ -362,7 +484,7 @@ static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *r
             break;
         case GLESv2_glTexSubImage2D:
             glTexSubImage2D (G_EN(0), G_IN(1), G_IN(2), G_IN(3), G_SII(4), G_SII(5),
-                G_EN(6), G_EN(7), (const void *)G_VPTR(8));
+                    G_EN(6), G_EN(7), (const void *)G_VPTR(8));
             break;
         case GLESv2_glUniform1f:
             glUniform1f (G_IN(0), G_FL(1));
