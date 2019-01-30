@@ -2,6 +2,8 @@
 #include "vmcutil.h"
 #include "cutil.h"
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #define MAX_WAITTIME_FOR_CONNECTION_RETRY 100
 
@@ -28,7 +30,6 @@ static void unlock_context(ccontext_t *ctx);
 
 static int init_client_context(ccontext_t *ctx, const char *servername, unsigned long sizeofsmem)
 {
-    pthread_mutexattr_t  mta;
     if ((!ctx) || (!servername) || (sizeofsmem == 0)) return -1;
 
     if ((ctx->sockfd = connect_to_server(servername, MAX_WAITTIME_FOR_CONNECTION_RETRY)) <= 0)
@@ -38,6 +39,7 @@ static int init_client_context(ccontext_t *ctx, const char *servername, unsigned
     if ((ctx->smemfd = alloc_shared_mem(sizeofsmem, &(ctx->smemref))) <= 0) goto init_failure;
 
     if (!(ctx->lockinitdone)) {
+        pthread_mutexattr_t  mta;
         if (pthread_mutexattr_init(&mta) < 0) goto init_failure;
 
         /* or PTHREAD_MUTEX_RECURSIVE_NP */
@@ -64,8 +66,6 @@ init_failure:
 
 static int init_server_side_client_context(ccontext_t *ctx)
 {
-    int len = sizeof (qframe_t);
-    pthread_mutexattr_t  mta;
     if ((!ctx) || (ctx->sockfd <= 2)) return -1;
     //clear_rx_buffer(ctx->sockfd);
     ctx->smemfd = rcv_fd(ctx->sockfd);
@@ -78,6 +78,7 @@ static int init_server_side_client_context(ccontext_t *ctx)
     if (ctx->smemref == NULL) goto init_failure;
 #ifdef ENABLE_MUTEX_FOR_SERVER_CLIENT_CONTEXT
     if (!(ctx->lockinitdone)) {
+        pthread_mutexattr_t  mta;
         if (pthread_mutexattr_init(&mta) < 0) goto init_failure;
 
         /* or PTHREAD_MUTEX_RECURSIVE_NP */
@@ -212,7 +213,6 @@ static inline void *get_ret_ptr(ccontext_t *ctx)
 void handle_ipc_calls(int cfd, ipc_fcall_t fcall_handler)
 {
     ccontext_t context = {0};
-    fcall_hdr_t *chdr = NULL;
     context.sockfd = cfd;
     while(watch_fd(context.sockfd, -1) >= 0) {
         if (rcv_call(&context) == 0) {

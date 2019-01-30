@@ -2,6 +2,7 @@
 #include "glesenum.h"
 #include "vmcutil.h"
 #include <stdlib.h>
+#include <string.h>
 #include <GLES2/gl2.h>
 
 #define G_BF(_idx)          *((GLbitfield *)args[_idx])
@@ -451,13 +452,15 @@ static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *r
             glVertexAttrib4fv (G_UI(0), (const GLfloat *)G_VPTR(1));
             break;
         case GLESv2_glVertexAttribPointer:
-            void *tptr = G_VPTR(5);
-            if ((long)tptr > 256) {
-                if (vertex_buffer == NULL) vertex_buffer = malloc(4<<10);
-                if (vertex_buffer) memcpy(vertex_buffer, tptr, 4<<10);
-                tptr = vertex_buffer;
+            {
+                void *tptr = G_VPTR(5);
+                if ((long)tptr > 256) {
+                    if (vertex_buffer == NULL) vertex_buffer = malloc(4<<10);
+                    if (vertex_buffer) memcpy(vertex_buffer, tptr, 4<<10);
+                    tptr = vertex_buffer;
+                }
+                glVertexAttribPointer (G_UI(0), G_IN(1), G_EN(2), G_BL(3), G_SII(4), (const void *)tptr);
             }
-            glVertexAttribPointer (G_UI(0), G_IN(1), G_EN(2), G_BL(3), G_SII(4), (const void *)tptr);
             break;
         case GLESv2_glViewport:
             glViewport (G_IN(0), G_IN(1), G_SII(2), G_SII(3));

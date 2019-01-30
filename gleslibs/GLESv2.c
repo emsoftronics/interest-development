@@ -19,6 +19,17 @@
 #include <string.h>
 #include "glesenum.h"
 #include "vmcutil.h"
+#include <GLES2/gl2.h>
+
+#ifdef GL_APICALL
+#undef GL_APICALL
+#define GL_APICALL
+#endif
+
+#ifdef GL_APIENTRY
+#undef GL_APIENTRY
+#define GL_APIENTRY
+#endif
 
 GL_APICALL void GL_APIENTRY glActiveTexture (GLenum texture)
 {
@@ -472,7 +483,7 @@ GL_APICALL void GL_APIENTRY glDeleteTextures (GLsizei n, const GLuint *textures)
     DCC_ADD_ARG(n, 0);
     DCC_ADD_ARG(textures, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(renderbuffers, (n+1)*sizeof(*textures), 1);
+    DCC_ADD_APTR_MEM(textures, (n+1)*sizeof(*textures), 1);
     DCC_RET_ONLY();
     DCC_END_CALL();
 #endif
@@ -503,7 +514,7 @@ GL_APICALL void GL_APIENTRY glDepthMask (GLboolean flag)
 GL_APICALL void GL_APIENTRY glDepthRangef (GLfloat n, GLfloat f)
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
-    DCC_START_CALL(GLESv2_glDepthRangef, 2, sizeof(n), sizeof(f));
+    DCC_START_CALL(GLESv2_glDepthRangef, 2, sizeof(n) + sizeof(f));
     DCC_ADD_ARG(n, 0);
     DCC_ADD_ARG(f, 0);
     DCC_ARG_OVER();
@@ -515,7 +526,7 @@ GL_APICALL void GL_APIENTRY glDepthRangef (GLfloat n, GLfloat f)
 GL_APICALL void GL_APIENTRY glDetachShader (GLuint program, GLuint shader)
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
-    DCC_START_CALL(GLESv2_glDetachShader, 2, sizeof(program), sizeof(shader));
+    DCC_START_CALL(GLESv2_glDetachShader, 2, sizeof(program) +  sizeof(shader));
     DCC_ADD_ARG(program, 0);
     DCC_ADD_ARG(shader, 0);
     DCC_ARG_OVER();
@@ -549,7 +560,7 @@ GL_APICALL void GL_APIENTRY glDisableVertexAttribArray (GLuint index)
 GL_APICALL void GL_APIENTRY glDrawArrays (GLenum mode, GLint first, GLsizei count)
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
-    DCC_START_CALL(GLESv2_glDrawArrays, 3, sizeof(mode), sizeof(first), sizeof(count));
+    DCC_START_CALL(GLESv2_glDrawArrays, 3, sizeof(mode) + sizeof(first) + sizeof(count));
     DCC_ADD_ARG(mode, 0);
     DCC_ADD_ARG(first, 0);
     DCC_ADD_ARG(count, 0);
@@ -849,12 +860,14 @@ GL_APICALL void GL_APIENTRY glGetBufferParameteriv (GLenum target, GLenum pname,
 
 GL_APICALL GLenum GL_APIENTRY glGetError (void)
 {
+    GLenum ret = 0;
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(GLESv2_glGetError, 0, 0);
     DCC_ARG_OVER();
-    DCC_RET_ONLY();
+    DCC_RET_VAL(ret);
     DCC_END_CALL();
 #endif
+    return ret;
 }
 
 GL_APICALL void GL_APIENTRY glGetFloatv (GLenum pname, GLfloat *data)
@@ -872,7 +885,7 @@ GL_APICALL void GL_APIENTRY glGetFloatv (GLenum pname, GLfloat *data)
 }
 
 GL_APICALL void GL_APIENTRY glGetFramebufferAttachmentParameteriv (GLenum target,
-    GLenum attachment, GLenum pname, GLint *params);
+    GLenum attachment, GLenum pname, GLint *params)
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(GLESv2_glGetFramebufferAttachmentParameteriv, 4, sizeof(target) + sizeof(attachment)
@@ -1166,7 +1179,7 @@ GL_APICALL void GL_APIENTRY glGetVertexAttribiv (GLuint index, GLenum pname, GLi
 #endif
 }
 
-GL_APICALL void GL_APIENTRY glGetVertexAttribPointerv (GLuint index, GLenum pname, void **pointer);
+GL_APICALL void GL_APIENTRY glGetVertexAttribPointerv (GLuint index, GLenum pname, void **pointer)
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(GLESv2_glGetVertexAttribPointerv, 3, sizeof(index) + sizeof(pname) + 2*sizeof(void*) + 1);
@@ -1193,7 +1206,7 @@ GL_APICALL void GL_APIENTRY glHint (GLenum target, GLenum mode)
 #endif
 }
 
-GL_APICALL GLboolean GL_APIENTRY glIsBuffer (GLuint buffer);
+GL_APICALL GLboolean GL_APIENTRY glIsBuffer (GLuint buffer)
 {
     GLboolean ret = GL_FALSE;
 #ifdef DEFAULT_CLIENT_CONTEXT

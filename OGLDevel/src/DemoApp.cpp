@@ -96,9 +96,9 @@ class Demo : public Canvas
             free(color);
             free(vIndices);
             */
-            mVertex = Geometry::loadCube();
+            //mVertex = Geometry::loadCube();
             //mVertex = Geometry::loadTriangle();
-            //mVertex = Geometry::loadSquare();
+            mVertex = Geometry::loadSquare();
         }
 };
 
