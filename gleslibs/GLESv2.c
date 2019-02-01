@@ -1442,7 +1442,8 @@ GL_APICALL void GL_APIENTRY glShaderSource (GLuint shader, GLsizei count, const 
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(GLESv2_glShaderSource, 4, sizeof(shader) + sizeof(count) + sizeof(string)
-        + sizeof(length) + count*(sizeof(*length) + sizeof(string) + 80) +  1);
+        + sizeof(length) + count*(sizeof(*length) + sizeof(string))
+        + ((count > 1)? count*80 : GL_STRLEN(string[0])) +  1);
     DCC_ADD_ARG(shader, 0);
     DCC_ADD_ARG(count, 0);
     DCC_ADD_ARG(string, 2);
