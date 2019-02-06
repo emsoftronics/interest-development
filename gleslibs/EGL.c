@@ -540,6 +540,16 @@ EGLAPI EGLBoolean EGLAPIENTRY eglCopyBuffers(EGLDisplay dpy, EGLSurface surface,
 EGLAPI __eglMustCastToProperFunctionPointerType EGLAPIENTRY
        eglGetProcAddress(const char *procname)
 {
+    long ret = 0;
+#ifdef DEFAULT_CLIENT_CONTEXT
+    DCC_START_CALL(EGL_eglGetProcAddress, 1, sizeof(procname) + GL_STRLEN(procname) + 8);
+    DCC_ADD_ARG(procname, 1);
+    DCC_ARG_OVER();
+    DCC_ADD_APTR_MEM(procname, GL_STRLEN(procname) + 1, 0);
+    DCC_RET_VAL(ret);
+    DCC_END_CALL();
+#endif
+    return (__eglMustCastToProperFunctionPointerType)ret;
 }
 
 

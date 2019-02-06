@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <GLES2/gl2.h>
+#include <EGL/egl.h>
 
 #define G_BF(_idx)          *((GLbitfield *)args[_idx])
 #define G_BL(_idx)          *((GLboolean *)args[_idx])
@@ -19,130 +20,229 @@
 #define G_IPT(_idx)          *((GLintptr *)args[_idx])
 #define G_VPTR(_idx)        ((void *)args[_idx])
 
+#ifdef EXTERNAL_EGL_PROFILE
+extern void ep_get_window_resolution(EGLint *width, EGL *height);
+extern void ep_get_display_major_minor(EGLint *major, EGL *minor);
+extern void *ep_get_native_window(EGLDisplay *disp, EGLContext *ctx, EGLSurface *surf, EGLConfig *config);
+extern void *ep_get_user_data(void);
+#else
+static void ep_get_window_resolution(EGLint *width, EGL *height)
+{
+    *width = 0;
+    *height = 0;
+}
+
+static void ep_get_display_major_minor(EGLint *major, EGL *minor)
+{
+    *major = 0;
+    *minor = 0;
+}
+
+static void *ep_get_native_window(EGLDisplay *disp, EGLContext *ctx, EGLSurface *surf, EGLConfig *config)
+{
+    *disp = EGL_NO_DISPLAY;
+    *ctx = EGL_NO_CONTEXT;
+    *surf = EGL_NO_SURFACE;
+    *config = EGL_NONE;
+    return NULL;
+}
+
+static void *ep_get_user_data(void) {return NULL;}
+
+#endif
+
+typedef struct {
+        EGLint       width;
+        EGLint       height;
+        EGLint       major;
+        EGLint       minor;
+        EGLNativeWindowType  hWnd;
+        EGLDisplay  eglDisplay;
+        EGLContext  eglContext;
+        EGLSurface  eglSurface;
+        EGLConfig   eglConfig;
+        void *user_data_ref;
+        int initialized;
+} egl_profile_t;
+
+static egl_profile_t gs_egl_profile = {0};
+
+static void init_egl_profile(void)
+{
+    gs_egl_profile.hWnd = (EGLNativeWindowType)ep_get_native_window(&gs_egl_profile.eglDisplay,
+        &gs_egl_profile.eglContext, &gs_egl_profile.eglSurface, &gs_egl_profile.eglConfig);\
+     ep_get_display_major_minor(&gs_egl_profile.major, &gs_egl_profile.minor);
+     ep_get_window_resolution(&gs_egl_profile.width, &gs_egl_profile.height);
+     user_data_ref = ep_get_user_data();
+    if (gs_egl_profile.eglDisplay == EGL_NO_DISPLAY) gs_egl_profile.initialized = 0;
+    else gs_egl_profile.initialized = 1;
+}
+
 static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *retsize)
 {
     static void *vertex_buffer = NULL;
+
+    if (!gs_egl_profile.initialized) init_egl_profile();
+
     switch (fid) {
         case EGL_eglGetError:
-            EGLAPI EGLint EGLAPIENTRY eglGetError(void);
+             *((EGLint *)ret) = eglGetError(); *retsize = sizeof(EGLint);
             break;
         case EGL_eglGetDisplay:
-            EGLAPI EGLDisplay EGLAPIENTRY eglGetDisplay(EGLNativeDisplayType display_id);
+//            EGLAPI EGLDisplay EGLAPIENTRY eglGetDisplay(EGLNativeDisplayType display_id);
+             *((EGLDisplay *)ret) = gs_egl_profile.eglDisplay; *retsize = sizeof(EGLDisplay);
             break;
         case EGL_eglInitialize:
-            EGLAPI EGLBoolean EGLAPIENTRY eglInitialize(EGLDisplay dpy, EGLint *major, EGLint *minor);
+//            EGLAPI EGLBoolean EGLAPIENTRY eglInitialize(EGLDisplay dpy, EGLint *major, EGLint *minor);
+            *((EGLint *)args[1]) = gs_egl_profile.major;
+            *((EGLint *)args[2]) = gs_egl_profile.minor;
+            *((EGLBoolean *)ret) = (gs_egl_profile.initialized)? EGL_TRUE :EGL_FALSE; *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglTerminate:
-            EGLAPI EGLBoolean EGLAPIENTRY eglTerminate(EGLDisplay dpy);
+//            EGLAPI EGLBoolean EGLAPIENTRY eglTerminate(EGLDisplay dpy);
+            *((EGLBoolean *)ret) = EGL_TRUE; *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglQueryString:
-            EGLAPI const char * EGLAPIENTRY eglQueryString(EGLDisplay dpy, EGLint name);
+//            EGLAPI const char * EGLAPIENTRY eglQueryString(EGLDisplay dpy, EGLint name);
+            ret = eglQueryString(gs_egl_profile.eglDisplay, *((EGLint *)args[1])); *retsize = sizeof(ret);
+            memcpy(args[2], ret, *((int *)args[3]));
             break;
         case EGL_eglGetProcAddress:
-            EGLAPI __eglMustCastToProperFunctionPointerType EGLAPIENTRY
-       eglGetProcAddress(const char *procname);
+//            EGLAPI __eglMustCastToProperFunctionPointerType EGLAPIENTRY eglGetProcAddress(const char *procname);
+            *((long *) ret) = (long)eglGetProcAddress((const char *)args[0]); *retsize = sizeof(long);
             break;
         case EGL_eglGetConfigs:
-            EGLAPI EGLBoolean EGLAPIENTRY eglGetConfigs(EGLDisplay dpy, EGLConfig *configs,
-                         EGLint config_size, EGLint *num_config);
+            *((EGLBoolean *)ret) = eglGetConfigs(gs_egl_profile.eglDisplay, (EGLConfig *)args[1],
+                         *((EGLint*)args[2]), (EGLint *)args[3]);
+            *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglChooseConfig:
-            EGLAPI EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list,
-                           EGLConfig *configs, EGLint config_size,
-                           EGLint *num_config);
+            *((EGLBoolean *)ret) = eglChooseConfig(gs_egl_profile.eglDisplay, (const EGLint *)args[1],
+                           (EGLConfig *)args[2], *((EGLint*)args[3]),
+                           (EGLint *)args[4]);
+            *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglGetConfigAttrib:
-            EGLAPI EGLBoolean EGLAPIENTRY eglGetConfigAttrib(EGLDisplay dpy, EGLConfig config,
-                              EGLint attribute, EGLint *value);
+            *((EGLBoolean *)ret) = eglGetConfigAttrib(gs_egl_profile.eglDisplay, *((EGLConfig *)args[1]),
+                              *((EGLint *)args[2]), (EGLint *)args[3]);
+            *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglCreateWindowSurface:
-            EGLAPI EGLSurface EGLAPIENTRY eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config,
-                                  EGLNativeWindowType win,
-                                  const EGLint *attrib_list);
+//            EGLAPI EGLSurface EGLAPIENTRY eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config,
+//                                  EGLNativeWindowType win,
+//                                  const EGLint *attrib_list);
+            *((EGLSurface *)ret) = gs_egl_profile.eglSurface; *retsize = sizeof(EGLSurface);
             break;
         case EGL_eglCreatePixmapSurface:
-            EGLAPI EGLSurface EGLAPIENTRY eglCreatePixmapSurface(EGLDisplay dpy, EGLConfig config,
-                                  EGLNativePixmapType pixmap,
-                                  const EGLint *attrib_list);
+//            EGLAPI EGLSurface EGLAPIENTRY eglCreatePixmapSurface(EGLDisplay dpy, EGLConfig config,
+//                                  EGLNativePixmapType pixmap,
+//                                  const EGLint *attrib_list);
+            *((EGLSurface *)ret) = gs_egl_profile.eglSurface; *retsize = sizeof(EGLSurface);
             break;
         case EGL_eglCreatePbufferSurface:
-            EGLAPI EGLSurface EGLAPIENTRY eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config,
-                                   const EGLint *attrib_list);
+//            EGLAPI EGLSurface EGLAPIENTRY eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config,
+//                                   const EGLint *attrib_list);
+            *((EGLSurface *)ret) = gs_egl_profile.eglSurface; *retsize = sizeof(EGLSurface);
             break;
         case EGL_eglDestroySurface:
-            EGLAPI EGLBoolean EGLAPIENTRY eglDestroySurface(EGLDisplay dpy, EGLSurface surface);
+//            EGLAPI EGLBoolean EGLAPIENTRY eglDestroySurface(EGLDisplay dpy, EGLSurface surface);
+            *((EGLBoolean *)ret) = (gs_egl_profile.initialized)? EGL_TRUE :EGL_FALSE; *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglQuerySurface:
-            EGLAPI EGLBoolean EGLAPIENTRY eglQuerySurface(EGLDisplay dpy, EGLSurface surface,
-                           EGLint attribute, EGLint *value);
+//            EGLAPI EGLBoolean EGLAPIENTRY eglQuerySurface(EGLDisplay dpy, EGLSurface surface,
+//                           EGLint attribute, EGLint *value);
+            *((EGLBoolean *)ret) = eglQuerySurface(gs_egl_profile.eglDisplay, gs_egl_profile.eglSurface,
+                *((EGLint *)args[2]), (EGLint *)args[3]); *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglCreateContext:
-            EGLAPI EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config,
-                            EGLContext share_context,
-                            const EGLint *attrib_list);
+//            EGLAPI EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config,
+//                            EGLContext share_context,
+//                            const EGLint *attrib_list);
+            *((EGLContext *)ret) = gs_egl_profile.eglContext; *retsize = sizeof(EGLContext);
             break;
         case EGL_eglDestroyContext:
-            EGLAPI EGLBoolean EGLAPIENTRY eglDestroyContext(EGLDisplay dpy, EGLContext ctx);
+//            EGLAPI EGLBoolean EGLAPIENTRY eglDestroyContext(EGLDisplay dpy, EGLContext ctx);
+            *((EGLBoolean *)ret) = (gs_egl_profile.initialized)? EGL_TRUE :EGL_FALSE; *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglMakeCurrent:
-            EGLAPI EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw,
-                          EGLSurface read, EGLContext ctx);
+//            EGLAPI EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw,
+//                          EGLSurface read, EGLContext ctx);
+            *((EGLBoolean *)ret) = (gs_egl_profile.initialized)? EGL_TRUE :EGL_FALSE; *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglGetCurrentContext:
-            EGLAPI EGLContext EGLAPIENTRY eglGetCurrentContext(void);
+//            EGLAPI EGLContext EGLAPIENTRY eglGetCurrentContext(void);
+            *((EGLContext *)ret) = gs_egl_profile.eglContext; *retsize = sizeof(EGLContext);
             break;
         case EGL_eglGetCurrentSurface:
-            EGLAPI EGLSurface EGLAPIENTRY eglGetCurrentSurface(EGLint readdraw);
+//            EGLAPI EGLSurface EGLAPIENTRY eglGetCurrentSurface(EGLint readdraw);
+            *((EGLSurface *)ret) = gs_egl_profile.eglSurface; *retsize = sizeof(EGLSurface);
             break;
         case EGL_eglGetCurrentDisplay:
-            EGLAPI EGLDisplay EGLAPIENTRY eglGetCurrentDisplay(void);
+//            EGLAPI EGLDisplay EGLAPIENTRY eglGetCurrentDisplay(void);
+            *((EGLDisplay *)ret) = gs_egl_profile.eglDisplay; *retsize = sizeof(EGLDisplay);
             break;
         case EGL_eglQueryContext:
-            EGLAPI EGLBoolean EGLAPIENTRY eglQueryContext(EGLDisplay dpy, EGLContext ctx,
-                           EGLint attribute, EGLint *value);
+//            EGLAPI EGLBoolean EGLAPIENTRY eglQueryContext(EGLDisplay dpy, EGLContext ctx,
+//                           EGLint attribute, EGLint *value);
+             *((EGLBoolean *)ret) = eglQueryContext(gs_egl_profile.eglDisplay, gs_egl_profile.eglContext,
+                *((EGLint *)args[2]), (EGLint *)args[3]); *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglWaitGL:
-            EGLAPI EGLBoolean EGLAPIENTRY eglWaitGL(void);
+            *((EGLBoolean *)ret) = eglWaitGL(); *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglWaitNative:
-            EGLAPI EGLBoolean EGLAPIENTRY eglWaitNative(EGLint engine);
+            *((EGLBoolean *)ret) = eglWaitNative(*((EGLint *)args[0])); *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglSwapBuffers:
-            EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surface);
+//            EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surface);
+            *((EGLBoolean *)ret) = eglSwapBuffers(gs_egl_profile.eglDisplay, gs_egl_profile.eglSurface);
+             *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglCopyBuffers:
-            EGLAPI EGLBoolean EGLAPIENTRY eglCopyBuffers(EGLDisplay dpy, EGLSurface surface,
-                          EGLNativePixmapType target);
+            *((EGLBoolean *)ret) = eglCopyBuffers(gs_egl_profile.eglDisplay, gs_egl_profile.eglSurface,
+                          *((EGLNativePixmapType*)args[2]));
+             *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglSwapInterval:
-            EGLAPI EGLBoolean EGLAPIENTRY eglSwapInterval(EGLDisplay dpy, EGLint interval);
+            *((EGLBoolean *)ret) = eglSwapInterval(gs_egl_profile.eglDisplay, *((EGLint *)args[1]));
+             *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglSurfaceAttrib:
-            EGLAPI EGLBoolean EGLAPIENTRY eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface,
-                            EGLint attribute, EGLint value);
+             *((EGLBoolean *)ret) = eglSurfaceAttrib(gs_egl_profile.eglDisplay, gs_egl_profile.eglSurface,
+                            *((EGLint*)args[2]), *((EGLint*)args[3]));
+             *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglBindTexImage:
-            EGLAPI EGLBoolean EGLAPIENTRY eglBindTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer);
+            *((EGLBoolean *)ret) = eglBindTexImage(gs_egl_profile.eglDisplay, gs_egl_profile.eglSurface,
+                *((EGLint*)args[2]));
+             *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglReleaseTexImage:
-            EGLAPI EGLBoolean EGLAPIENTRY eglReleaseTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer);
+            *((EGLBoolean *)ret) = eglReleaseTexImage(gs_egl_profile.eglDisplay, gs_egl_profile.eglSurface,
+                *((EGLint*)args[2]));
+             *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglCreatePbufferFromClientBuffer:
-            EGLAPI EGLSurface EGLAPIENTRY eglCreatePbufferFromClientBuffer(
-              EGLDisplay dpy, EGLenum buftype, EGLClientBuffer buffer,
-              EGLConfig config, const EGLint *attrib_list);
+//            EGLAPI EGLSurface EGLAPIENTRY eglCreatePbufferFromClientBuffer(
+//              EGLDisplay dpy, EGLenum buftype, EGLClientBuffer buffer,
+//              EGLConfig config, const EGLint *attrib_list);
+            *((EGLSurface *)ret) = gs_egl_profile.eglSurface; *retsize = sizeof(EGLSurface);
             break;
         case EGL_eglBindAPI:
-            EGLAPI EGLBoolean EGLAPIENTRY eglBindAPI(EGLenum api);
+            *((EGLBoolean *)ret) = eglBindAPI(*((EGLenum*)args[0]));
+            *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglQueryAPI:
-            EGLAPI EGLenum EGLAPIENTRY eglQueryAPI(void);
+            *((EGLenum *)ret) = eglQueryAPI();
+            *retsize = sizeof(EGLenum);
             break;
         case EGL_eglWaitClient:
-            EGLAPI EGLBoolean EGLAPIENTRY eglWaitClient(void);
+            *((EGLBoolean *)ret) = eglWaitClient();
+            *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglReleaseThread:
-            EGLAPI EGLBoolean EGLAPIENTRY eglReleaseThread(void);
+            *((EGLBoolean *)ret) = eglReleaseThread();
+            *retsize = sizeof(EGLBoolean);
             break;
         /*************GLESv2 function cases ***************************/
         case GLESv2_glActiveTexture:
