@@ -48,13 +48,13 @@ Canvas::Canvas(const char* title, GLint width, GLint height, Canvas::BufferType 
     canvasCreated = false;
     this->width = width;
     this->height = height;
-
+#if 0
     if ( !createWindow (title) )
     {
       printf("%s: Creation of X11 window is failed!!\n", title);
       return;
     }
-
+#endif
 
    if ( !createEGLContext ( this->hWnd,
                             &this->eglDisplay,

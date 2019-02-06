@@ -2,6 +2,7 @@
 #include "glesenum.h"
 #include "vmcutil.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
@@ -65,6 +66,15 @@ typedef struct {
         int initialized;
 } egl_profile_t;
 
+struct node {
+    void *dataptr;
+    struct node *next;
+};
+
+typedef struct node snode_t;
+
+static snode_t *gs_vhead = NULL;
+
 static egl_profile_t gs_egl_profile = {0};
 
 static void init_egl_profile(void)
@@ -78,9 +88,30 @@ static void init_egl_profile(void)
     else gs_egl_profile.initialized = 1;
 }
 
+static void push(void *ptr)
+{
+    snode_t *node = (snode_t *)malloc(sizeof(snode_t));
+    if (!node) {
+        printf("No memory available!!\n");
+        return;
+    }
+    node->dataptr = ptr;
+    node->next = gs_vhead;
+    gs_vhead = node;
+}
+static void clear()
+{
+    snode_t *node;
+    while(gs_vhead != NULL) {
+        node = gs_vhead;
+        gs_vhead = gs_vhead->next;
+        if (node->dataptr) free(node->dataptr);
+        free(node);
+    }
+}
+
 static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *retsize)
 {
-    static void *vertex_buffer = NULL;
 
     if (!gs_egl_profile.initialized) init_egl_profile();
 
@@ -369,11 +400,11 @@ static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *r
             break;
         case GLESv2_glDrawArrays:
             glDrawArrays (G_EN(0), G_IN(1), G_SII(2));
-            if (vertex_buffer) {free(vertex_buffer); vertex_buffer = NULL;}
+            clear();
             break;
         case GLESv2_glDrawElements:
             glDrawElements (G_EN(0), G_SII(1), G_EN(2), (const void *)G_VPTR(3));
-            if (vertex_buffer) {free(vertex_buffer); vertex_buffer = NULL;}
+            clear();
             break;
         case GLESv2_glEnable:
             glEnable (G_EN(0));
@@ -675,10 +706,14 @@ static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *r
             break;
         case GLESv2_glVertexAttribPointer:
             {
+                void *vertex_buffer = NULL;
                 void *tptr = G_VPTR(5);
                 if ((long)tptr > 256) {
-                    if (vertex_buffer == NULL) vertex_buffer = malloc(4<<10);
-                    if (vertex_buffer) memcpy(vertex_buffer, tptr, 4<<10);
+                    vertex_buffer = malloc(4<<10);
+                    if (vertex_buffer) {
+                        memcpy(vertex_buffer, tptr, 4<<10);
+                        push(vertex_buffer);
+                    }
                     tptr = vertex_buffer;
                 }
                 glVertexAttribPointer (G_UI(0), G_IN(1), G_EN(2), G_BL(3), G_SII(4), (const void *)tptr);
