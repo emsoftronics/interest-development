@@ -1,6 +1,8 @@
 #include <EGL/egl.h>
 #include "vmcutil.h"
 #include "glesenum.h"
+#include <string.h>
+#include <stdlib.h>
 
 EGLAPI EGLint EGLAPIENTRY eglGetError(void)
 {
@@ -465,6 +467,7 @@ EGLAPI EGLDisplay EGLAPIENTRY eglGetCurrentDisplay(void)
 
 EGLAPI EGLBoolean EGLAPIENTRY eglQueryContext(EGLDisplay dpy, EGLContext ctx,
                            EGLint attribute, EGLint *value)
+{
     EGLBoolean ret = EGL_FALSE;
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(EGL_eglQueryContext, 4, sizeof(dpy) + sizeof(ctx) + sizeof(attribute)
@@ -480,6 +483,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglQueryContext(EGLDisplay dpy, EGLContext ctx,
     DCC_END_CALL();
 #endif
     return ret;
+}
 
 EGLAPI EGLBoolean EGLAPIENTRY eglWaitGL(void)
 {

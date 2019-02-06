@@ -21,18 +21,18 @@
 #define G_VPTR(_idx)        ((void *)args[_idx])
 
 #ifdef EXTERNAL_EGL_PROFILE
-extern void ep_get_window_resolution(EGLint *width, EGL *height);
-extern void ep_get_display_major_minor(EGLint *major, EGL *minor);
+extern void ep_get_window_resolution(EGLint *width, EGLint *height);
+extern void ep_get_display_major_minor(EGLint *major, EGLint *minor);
 extern void *ep_get_native_window(EGLDisplay *disp, EGLContext *ctx, EGLSurface *surf, EGLConfig *config);
 extern void *ep_get_user_data(void);
 #else
-static void ep_get_window_resolution(EGLint *width, EGL *height)
+static void ep_get_window_resolution(EGLint *width, EGLint *height)
 {
     *width = 0;
     *height = 0;
 }
 
-static void ep_get_display_major_minor(EGLint *major, EGL *minor)
+static void ep_get_display_major_minor(EGLint *major, EGLint *minor)
 {
     *major = 0;
     *minor = 0;
@@ -43,7 +43,7 @@ static void *ep_get_native_window(EGLDisplay *disp, EGLContext *ctx, EGLSurface 
     *disp = EGL_NO_DISPLAY;
     *ctx = EGL_NO_CONTEXT;
     *surf = EGL_NO_SURFACE;
-    *config = EGL_NONE;
+    *config = 0;
     return NULL;
 }
 
@@ -73,7 +73,7 @@ static void init_egl_profile(void)
         &gs_egl_profile.eglContext, &gs_egl_profile.eglSurface, &gs_egl_profile.eglConfig);\
      ep_get_display_major_minor(&gs_egl_profile.major, &gs_egl_profile.minor);
      ep_get_window_resolution(&gs_egl_profile.width, &gs_egl_profile.height);
-     user_data_ref = ep_get_user_data();
+     gs_egl_profile.user_data_ref = ep_get_user_data();
     if (gs_egl_profile.eglDisplay == EGL_NO_DISPLAY) gs_egl_profile.initialized = 0;
     else gs_egl_profile.initialized = 1;
 }
@@ -104,7 +104,7 @@ static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *r
             break;
         case EGL_eglQueryString:
 //            EGLAPI const char * EGLAPIENTRY eglQueryString(EGLDisplay dpy, EGLint name);
-            ret = eglQueryString(gs_egl_profile.eglDisplay, *((EGLint *)args[1])); *retsize = sizeof(ret);
+            ret = (void *)eglQueryString(gs_egl_profile.eglDisplay, *((EGLint *)args[1])); *retsize = sizeof(ret);
             memcpy(args[2], ret, *((int *)args[3]));
             break;
         case EGL_eglGetProcAddress:
