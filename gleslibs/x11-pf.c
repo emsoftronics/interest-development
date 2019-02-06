@@ -216,6 +216,7 @@ void ep_get_display_major_minor(EGLint *major, EGLint *minor)
 
 void *ep_get_native_window(EGLDisplay *disp, EGLContext *ctx, EGLSurface *surf, EGLConfig *config)
 {
+    init_x11_pf();
     *disp = xpf.eglDisplay;
     *ctx = xpf.eglContext;
     *surf = xpf.eglSurface;
