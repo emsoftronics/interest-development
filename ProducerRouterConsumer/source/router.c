@@ -105,17 +105,17 @@ context_t *get_context(slist_ref_t list ,int code)
 static void *consumer_thread(void *arg)
 {
     context_t *ctx = arg;
-    evpack_t packet = {0};
+    evpack_t *packet = NULL;
+    int len = 0;
 
     if (!ctx) return NULL;
     while(check_connection_termination(ctx->cfd) <= 0) {
         if (sll_getListItemCount(ctx->packet_list) > 0) {
-            if (sll_removeFromHead(ctx->packet_list, &packet, NULL)
-                < sizeof(evpack_t)) break;
-            if (send_data(ctx->cfd, &packet, sizeof(evpack_t)) < sizeof(evpack_t)) {
-                sll_addAtHead(ctx->packet_list, &packet, sizeof(evpack_t), 0);
-                break;
-            }
+            packet = sll_getListItem(ITEM_FIRST, ctx->packet_list, &len, 0);
+            if ((!packet) || (len < sizeof(evpack_t) - 1)) break;
+            if (send_data(ctx->cfd, packet, len) < len) break;
+            sll_removeFromHead(ctx->packet_list, NULL, NULL);
+            packet = NULL;
         }
         else {
             pthread_mutex_lock(&(ctx->lock));
@@ -129,24 +129,27 @@ static void *consumer_thread(void *arg)
     return NULL;
 }
 
+
 static void *producer_thread(void *arg)
 {
     context_t *ctx = arg;
-    evpack_t packet = {0};
+    evpack_t *packet = NULL;
 
     if (!ctx) return NULL;
     while(check_connection_termination(ctx->pfd) == 0) {
-        if (read(ctx->pfd, &packet, sizeof(evpack_t)) < sizeof(evpack_t)) break;
-        if (packet.code == ctx->code) {
+        if (get_full_data_packet(ctx->pfd, &packet, -1) <= 0) break;
+        if (packet->code == ctx->code) {
             if (sll_getListItemCount(ctx->packet_list) <= gs_list_size) {
-                sll_addToList(ctx->packet_list, &packet, sizeof(evpack_t), 0);
+                sll_addToList(ctx->packet_list, packet, sizeof(evpack_t) -1 + packet->datalen, 0);
             }
             else {
                 pthread_mutex_lock(&gs_lock);
                 printf("\nServer list storage is overflowed and droping packet: ");
-                ev_pack_dump_to_file(stdout, &packet, 1);
+                ev_pack_dump_to_file(stdout, packet);
                 pthread_mutex_unlock(&gs_lock);
             }
+            if (packet) free(packet);
+            packet = NULL;
         }
         pthread_mutex_lock(&(ctx->lock));
         pthread_cond_signal(&(ctx->condition));
@@ -181,7 +184,7 @@ static int create_client_thread(int fd, evpack_t *pack)
     }
     else {
         ctx->pfd = fd;
-        sll_addToList(ctx->packet_list, pack, sizeof(evpack_t), 0);
+        sll_addToList(ctx->packet_list, pack, sizeof(evpack_t)-1+pack->datalen, 0);
         create_thread(ctx, producer_thread);
     }
     return 0;
@@ -189,10 +192,11 @@ static int create_client_thread(int fd, evpack_t *pack)
 
 static void handle_client_context(int fd)
 {
-    evpack_t packet = {0};
+    evpack_t *packet = NULL;
     if (check_connection_termination(fd) > 0) goto connection_error;
-    if (read(fd, &packet, sizeof(evpack_t)) < sizeof(evpack_t)) goto connection_error;
-    if (create_client_thread(fd, &packet) < 0) goto connection_error;
+    if (get_full_data_packet(fd, &packet, -1) < 0) goto connection_error;
+    if (create_client_thread(fd, packet) < 0) goto connection_error;
+    if (packet) free(packet);
     return;
 connection_error:
     if (fd > 2) {

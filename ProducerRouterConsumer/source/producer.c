@@ -31,7 +31,7 @@ static int gs_producers =  2;
 static char gs_log_dir_path[128] = "/tmp";
 static int gs_msdelay = 10;
 static context_t gs_context = {0};
-
+static int gs_max_payload_size = 100;
 static void parse_arg(int argc, char **argv)
 {
     int opt;
@@ -39,16 +39,17 @@ static void parse_arg(int argc, char **argv)
     // put ':' in the starting of the
     // string so that program can
     //distinguish between '?' and ':'
-    while((opt = getopt(argc, argv, ":r:c:p:d:h")) != -1)
+    while((opt = getopt(argc, argv, ":r:c:p:d:l:h")) != -1)
     {
         switch(opt)
         {
             case 'h':  printf("Usage: %s [option] [arg]\n", argv[0]);
-                printf("-h              Help.\n");
-                printf("-r <router>     Router service name. default : %s.\n", gs_router);
-                printf("-c <producers>  Number of producers need to be use (default: %d).\n", gs_producers);
-                printf("-p <dir_path>   Directory for request logs (default: %s).\n", gs_log_dir_path);
-                printf("-d <interval>   Event generation interval (in ms)(default: %d ms).\n", gs_msdelay);
+                printf("-h                  Help.\n");
+                printf("-r <router>         Router service name. default : %s.\n", gs_router);
+                printf("-c <producers>      Number of producers need to be use (default: %d).\n", gs_producers);
+                printf("-p <dir_path>       Directory for request logs (default: %s).\n", gs_log_dir_path);
+                printf("-d <interval>       Event generation interval (in ms)(default: %d ms).\n", gs_msdelay);
+                printf("-l <payload_limit>  Event data payload limit(default: %d bytes).\n", gs_max_payload_size);
                 exit(0);
                 break;
             case 'r':
@@ -63,6 +64,10 @@ static void parse_arg(int argc, char **argv)
             case 'd':
                 gs_msdelay = atoi(optarg);
                 if (gs_msdelay < 1) gs_msdelay = 1;
+                break;
+            case 'l':
+                gs_max_payload_size = atoi(optarg);
+                if (gs_max_payload_size < 1) gs_max_payload_size = 1;
                 break;
             case ':':
                 printf("option needs a value!\n");
@@ -84,18 +89,24 @@ static void parse_arg(int argc, char **argv)
 /* Fill the transmission packet  */
 static void fill_packet(evpack_t *p, context_t *ctx)
 {
+    int datalen = gs_max_payload_size;
     if ((!p) || (!ctx)) return;
+    //datalen = get_rnd_no(1, 100);
     p->pid = getpid();
     p->code = ctx->code;
     p->priority = get_rnd_no(1, 10);
     gettimeofday(&(p->timestamp), NULL);
-    ev_pack_dump_to_file(ctx->logfile, p, 0);
+    p->datalen = datalen;
+    memset(p->payload, get_rnd_no(32, 127), datalen -1);
+    p->payload[datalen - 1] = '\0';
+    ev_pack_dump_to_file(ctx->logfile, p);
 }
 
-/* Fill the transmission packet  */
 static void create_producer(int code)
 {
-    evpack_t packet = {0, code, 10, 0.0f};
+    evpack_t *packet = NULL;
+
+    while (!packet) packet = (evpack_t *)malloc(gs_max_payload_size + sizeof(evpack_t) - 1);
     rtrim(gs_log_dir_path, "/ ");
     if (!is_accessible_dir(gs_log_dir_path)) {
         strcat(gs_log_dir_path, "_P");
@@ -111,18 +122,20 @@ static void create_producer(int code)
     }
 
     gs_context.code = code;
-    fill_packet(&packet, &gs_context);
+    fill_packet(packet, &gs_context);
     while(1) {
         gs_context.cfd = connect_to_server(gs_router, -1);
         if (gs_context.cfd > 0) {
             while(check_connection_termination(gs_context.cfd) <= 0) {
-                if (send_data(gs_context.cfd, &packet, sizeof(evpack_t)) < 0) break;
+                if (packet)
+                    if (send_data(gs_context.cfd, packet, sizeof(evpack_t) + packet->datalen - 1) < 0) break;
                 usleep(gs_msdelay*1000);
-                fill_packet(&packet, &gs_context);
+                fill_packet(packet, &gs_context);
             }
             close(gs_context.cfd);
         }
     }
+    if (packet) free(packet);
 }
 
 static int create_producer_process(int code)

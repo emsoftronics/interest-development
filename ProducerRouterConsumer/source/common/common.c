@@ -46,7 +46,7 @@ FILE *create_log_file(char *file_path, const char *header)
         fprintf(file, "\nCreated By:\t %d\n", getpid());
         fprintf(file,"Created On:\t%d-%d-%d %d:%d:%d\n", tm.tm_year + 1900, tm.tm_mon + 1,
         tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-        fprintf(file, "\n%6s  EVC  PR  %-18s  %-18s  %12s", "PID","LAUNCH_TIME", "RECEIVE_TIME", "DELAYED_BY");
+        fprintf(file, "\n%6s  EVC  PR  %-18s  %12s  %12s", "PID","LAUNCH_TIME", "DATA_LENGTH", "DELAYED_BY");
         fprintf(file, "\n-------------------------------------------------------------------------------\n");
         fflush(file);
     }
@@ -87,14 +87,13 @@ static char *get_current_time(const char *format)
 }
 
 /* Dump data packet to log file with PID/EVC/PR/LAUNCH_TIME/RCV_TIME/DELAYED_BY field values */
-void ev_pack_dump_to_file(FILE *file, evpack_t *packet, int enable_rx_time)
+void ev_pack_dump_to_file(FILE *file, evpack_t *packet)
 {
     char buf[32] =  "%d-%m-%y, %H:%M:%S";
     if ((!file) || (!packet)) return;
-    fprintf(file, "\n%6d  %3d  %2d  %18s  %18s  %10.4lfms\n", packet->pid, packet->code,
+    fprintf(file, "\n%6d  %3d  %2d  %18s  %6d bytes  %9.4lf ms\n", packet->pid, packet->code,
         packet->priority, get_formatted_time(packet->timestamp, buf, sizeof(buf)),
-        (enable_rx_time)? get_current_time("%d-%m-%y, %H:%M:%S") : "---------------"
-        , get_ms_diff_with_current_time(packet->timestamp));
+        packet->datalen, get_ms_diff_with_current_time(packet->timestamp));
     fflush(file);
 }
 
@@ -268,3 +267,28 @@ char *rtrim(char *str, char *tchrs)
     return str;
 }
 
+int get_full_data_packet(int fd, evpack_t **p, int timeout)
+{
+    int len = 0;
+    if (!p) return -1;
+    if (*p) free(*p);
+    *p = (evpack_t *)malloc(sizeof(evpack_t));
+    if(!(*p)) return -1;
+    if (watch_fd(fd, timeout) > 0) {
+        if (read(fd, *p, sizeof(evpack_t) - 1) < sizeof(evpack_t) - 1) goto connection_error;
+        if ((*p)->datalen > 1) {
+            len = sizeof(evpack_t) + (*p)->datalen - 1;
+            *p = (evpack_t *)realloc(*p, len);
+            if (!(*p)) return -1;
+            len = read(fd, (*p)->payload, (*p)->datalen);
+            if(len <= 0) goto connection_error;
+            len += sizeof(evpack_t) - 1;
+        }
+        else len = sizeof(evpack_t);
+        return len;
+    }
+connection_error:
+    if(*p)free(*p);
+    *p = NULL;
+    return -1;
+}

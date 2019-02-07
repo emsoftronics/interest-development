@@ -32,6 +32,8 @@ typedef struct __attribute__((packed)) evpack{
     uint16_t code;
     uint16_t priority;
     struct timeval timestamp;
+    uint32_t datalen;
+    char payload[0];
 } evpack_t;
 
 typedef struct {
@@ -50,7 +52,7 @@ typedef struct {
 typedef void *(*thread_handler_t)(void *);
 
 extern FILE *create_log_file(char *file_path, const char *header);
-extern void ev_pack_dump_to_file(FILE *file, evpack_t *packet, int enable_rx_time);
+extern void ev_pack_dump_to_file(FILE *file, evpack_t *packet);
 
 extern int init_context(context_t *ctx);
 extern void exit_context(context_t *ctx);
@@ -61,4 +63,5 @@ extern void enable_auto_kill_childs(void);
 extern void wait_for_all_childs_termination(void);
 extern char *ltrim(char *str, char *tchrs);
 extern char *rtrim(char *str, char *tchrs);
+extern int get_full_data_packet(int fd, evpack_t **p, int timeout);
 #endif /* __COMMON_H__ */

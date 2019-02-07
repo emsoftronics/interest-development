@@ -85,12 +85,13 @@ static void parse_arg(int argc, char **argv)
 
 static void handle_packet(evpack_t *pack, context_t *ctx)
 {
-    ev_pack_dump_to_file(ctx->logfile, pack, 1);
+    ev_pack_dump_to_file(ctx->logfile, pack);
 }
 
 static void create_consumer(int code)
 {
-    evpack_t packet = {0, code, 0xfff, 0};
+    evpack_t packet = {0, code, 0xfff, {0,0}, 0};
+    evpack_t *pack = NULL;
     rtrim(gs_log_dir_path, "/ ");
     if (!is_accessible_dir(gs_log_dir_path)) {
         strcat(gs_log_dir_path, "_C");
@@ -114,8 +115,10 @@ static void create_consumer(int code)
 
         if (gs_context.cfd > 0) {
             while(check_connection_termination(gs_context.cfd) <= 0) {
-                if (read(gs_context.cfd, &packet, sizeof(evpack_t)) < sizeof(evpack_t)) break;
-                handle_packet(&packet, &gs_context);
+                if (get_full_data_packet(gs_context.cfd, &pack, -1) < 0) break;
+                handle_packet(pack, &gs_context);
+                if(pack) free(pack);
+                pack = NULL;
             }
             close(gs_context.cfd);
         }
