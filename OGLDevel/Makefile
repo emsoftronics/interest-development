@@ -18,7 +18,7 @@ DCOMPILE_FLAGS = -D DEBUG
 # Add additional include paths
 INCLUDES = -I $(SRC_PATH)
 # General linker settings
-LINK_FLAGS =  -pthread -lGLESv2_ipc -lEGL_ipc -lm -lX11 -L/home/jagdish/Development/interest-development/GLESv2
+LINK_FLAGS =  -pthread -lGLESv2_ipc -lEGL_ipc -lm -lX11 -L/home/user/Jacinto_Linux/tmp/interest-development/GLESv2
 # Additional release-specific linker settings
 RLINK_FLAGS =
 # Additional debug-specific linker settings
