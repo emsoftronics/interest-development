@@ -25,7 +25,9 @@
 extern void ep_get_window_resolution(EGLint *width, EGLint *height);
 extern void ep_get_display_major_minor(EGLint *major, EGLint *minor);
 extern void *ep_get_native_window(EGLDisplay *disp, EGLContext *ctx, EGLSurface *surf, EGLConfig *config);
+extern EGLBoolean ep_SwapBuffers(EGLDisplay dpy, EGLSurface surface);
 extern void *ep_get_user_data(void);
+extern void ep_destroy_native_window(void);
 #else
 static void ep_get_window_resolution(EGLint *width, EGLint *height)
 {
@@ -48,8 +50,10 @@ static void *ep_get_native_window(EGLDisplay *disp, EGLContext *ctx, EGLSurface 
     return NULL;
 }
 
-static void *ep_get_user_data(void) {return NULL;}
+static EGLBoolean ep_SwapBuffers(EGLDisplay dpy, EGLSurface surface) { return EGL_FALSE;}
 
+static void *ep_get_user_data(void) {return NULL;}
+static void ep_destroy_native_window(void) {/* Do Nothing */}
 #endif
 
 typedef struct {
@@ -86,6 +90,15 @@ static void init_egl_profile(void)
      gs_egl_profile.user_data_ref = ep_get_user_data();
     if (gs_egl_profile.eglDisplay == EGL_NO_DISPLAY) gs_egl_profile.initialized = 0;
     else gs_egl_profile.initialized = 1;
+}
+
+static void exit_egl_profile(void)
+{
+    ep_destroy_native_window();
+    gs_egl_profile.eglDisplay = EGL_NO_DISPLAY;
+    gs_egl_profile.eglContext = EGL_NO_CONTEXT;
+    gs_egl_profile.eglSurface = EGL_NO_SURFACE;
+    gs_egl_profile.initialized = 0;
 }
 
 static void push(void *ptr)
@@ -131,6 +144,7 @@ static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *r
             break;
         case EGL_eglTerminate:
 //            EGLAPI EGLBoolean EGLAPIENTRY eglTerminate(EGLDisplay dpy);
+            exit_egl_profile();
             *((EGLBoolean *)ret) = EGL_TRUE; *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglQueryString:
@@ -226,7 +240,7 @@ static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *r
             break;
         case EGL_eglSwapBuffers:
 //            EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surface);
-            *((EGLBoolean *)ret) = eglSwapBuffers(gs_egl_profile.eglDisplay, gs_egl_profile.eglSurface);
+            *((EGLBoolean *)ret) = ep_SwapBuffers(gs_egl_profile.eglDisplay, gs_egl_profile.eglSurface);
              *retsize = sizeof(EGLBoolean);
             break;
         case EGL_eglCopyBuffers:

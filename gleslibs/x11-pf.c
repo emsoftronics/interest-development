@@ -229,4 +229,14 @@ void *ep_get_user_data(void)
     return NULL;
 }
 
+EGLBoolean ep_SwapBuffers(EGLDisplay dpy, EGLSurface surface)
+{
+    return eglSwapBuffers(dpy, surface);
+}
+
+void ep_destroy_native_window(void)
+{
+    //TODO
+}
+
 #endif

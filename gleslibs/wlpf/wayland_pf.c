@@ -75,6 +75,8 @@ struct display {
         EGLDisplay dpy;
         EGLContext ctx;
         EGLConfig conf;
+        EGLint major;
+        EGLint minor;
     } egl;
     struct window *window;
     struct ivi_application *ivi_application;
@@ -89,11 +91,6 @@ struct geometry {
 struct window {
     struct display *display;
     struct geometry geometry, window_size;
-    struct {
-        GLuint rotation_uniform;
-        GLuint pos;
-        GLuint col;
-    } gl;
 
     uint32_t benchmark_time, frames;
     struct wl_egl_window *native;
@@ -105,24 +102,6 @@ struct window {
     int fullscreen, opaque, buffer_size, frame_sync;
 };
 
-static const char *vert_shader_text =
-    "uniform mat4 rotation;\n"
-    "attribute vec4 pos;\n"
-    "attribute vec4 color;\n"
-    "varying vec4 v_color;\n"
-    "void main() {\n"
-    "  gl_Position = rotation * pos;\n"
-    "  v_color = color;\n"
-    "}\n";
-
-static const char *frag_shader_text =
-    "precision mediump float;\n"
-    "varying vec4 v_color;\n"
-    "void main() {\n"
-    "  gl_FragColor = v_color;\n"
-    "}\n";
-
-static int running = 1;
 
 static void
 init_egl(struct display *display, struct window *window)
@@ -143,7 +122,7 @@ init_egl(struct display *display, struct window *window)
         EGL_NONE
     };
 
-    EGLint major, minor, n, count, i, size;
+    EGLint n, count, i, size;
     EGLConfig *configs;
     EGLBoolean ret;
 
@@ -155,7 +134,7 @@ init_egl(struct display *display, struct window *window)
                         display->display, NULL);
     assert(display->egl.dpy);
 
-    ret = eglInitialize(display->egl.dpy, &major, &minor);
+    ret = eglInitialize(display->egl.dpy, &display->egl.major, &display->egl.minor);
     assert(ret == EGL_TRUE);
     ret = eglBindAPI(EGL_OPENGL_ES_API);
     assert(ret == EGL_TRUE);
@@ -237,42 +216,6 @@ create_shader(struct window *window, const char *source, GLenum shader_type)
     return shader;
 }
 
-static void
-init_gl(struct window *window)
-{
-    GLuint frag, vert;
-    GLuint program;
-    GLint status;
-
-    frag = create_shader(window, frag_shader_text, GL_FRAGMENT_SHADER);
-    vert = create_shader(window, vert_shader_text, GL_VERTEX_SHADER);
-
-    program = glCreateProgram();
-    glAttachShader(program, frag);
-    glAttachShader(program, vert);
-    glLinkProgram(program);
-
-    glGetProgramiv(program, GL_LINK_STATUS, &status);
-    if (!status) {
-        char log[1000];
-        GLsizei len;
-        glGetProgramInfoLog(program, 1000, &len, log);
-        fprintf(stderr, "Error: linking:\n%*s\n", len, log);
-        exit(1);
-    }
-
-    glUseProgram(program);
-
-    window->gl.pos = 0;
-    window->gl.col = 1;
-
-    glBindAttribLocation(program, window->gl.pos, "pos");
-    glBindAttribLocation(program, window->gl.col, "color");
-    glLinkProgram(program);
-
-    window->gl.rotation_uniform =
-        glGetUniformLocation(program, "rotation");
-}
 
 static void
 handle_surface_configure(void *data, struct xdg_surface *surface,
@@ -314,7 +257,6 @@ handle_surface_configure(void *data, struct xdg_surface *surface,
 static void
 handle_surface_delete(void *data, struct xdg_surface *xdg_surface)
 {
-    running = 0;
 }
 
 static const struct xdg_surface_listener xdg_surface_listener = {
@@ -431,105 +373,6 @@ destroy_surface(struct window *window)
         wl_callback_destroy(window->callback);
 }
 
-static void
-redraw(void *data, struct wl_callback *callback, uint32_t time)
-{
-    struct window *window = data;
-    struct display *display = window->display;
-    static const GLfloat verts[3][2] = {
-        { -0.5, -0.5 },
-        {  0.5, -0.5 },
-        {  0,    0.5 }
-    };
-    static const GLfloat colors[3][3] = {
-        { 1, 0, 0 },
-        { 0, 1, 0 },
-        { 0, 0, 1 }
-    };
-    GLfloat angle;
-    GLfloat rotation[4][4] = {
-        { 1, 0, 0, 0 },
-        { 0, 1, 0, 0 },
-        { 0, 0, 1, 0 },
-        { 0, 0, 0, 1 }
-    };
-    static const uint32_t speed_div = 5, benchmark_interval = 5;
-    struct wl_region *region;
-    EGLint rect[4];
-    EGLint buffer_age = 0;
-    struct timeval tv;
-
-    assert(window->callback == callback);
-    window->callback = NULL;
-
-    if (callback)
-        wl_callback_destroy(callback);
-
-    gettimeofday(&tv, NULL);
-    time = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-    if (window->frames == 0)
-        window->benchmark_time = time;
-    if (time - window->benchmark_time > (benchmark_interval * 1000)) {
-        printf("%d frames in %d seconds: %f fps\n",
-               window->frames,
-               benchmark_interval,
-               (float) window->frames / benchmark_interval);
-        window->benchmark_time = time;
-        window->frames = 0;
-    }
-
-    angle = (time / speed_div) % 360 * M_PI / 180.0;
-    rotation[0][0] =  cos(angle);
-    rotation[0][2] =  sin(angle);
-    rotation[2][0] = -sin(angle);
-    rotation[2][2] =  cos(angle);
-
-    if (display->swap_buffers_with_damage)
-        eglQuerySurface(display->egl.dpy, window->egl_surface,
-                EGL_BUFFER_AGE_EXT, &buffer_age);
-
-    glViewport(0, 0, window->geometry.width, window->geometry.height);
-
-    glUniformMatrix4fv(window->gl.rotation_uniform, 1, GL_FALSE,
-               (GLfloat *) rotation);
-
-    glClearColor(0.0, 0.0, 0.0, 0.5);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glVertexAttribPointer(window->gl.pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
-    glVertexAttribPointer(window->gl.col, 3, GL_FLOAT, GL_FALSE, 0, colors);
-    glEnableVertexAttribArray(window->gl.pos);
-    glEnableVertexAttribArray(window->gl.col);
-
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    glDisableVertexAttribArray(window->gl.pos);
-    glDisableVertexAttribArray(window->gl.col);
-
-    if (window->opaque || window->fullscreen) {
-        region = wl_compositor_create_region(window->display->compositor);
-        wl_region_add(region, 0, 0,
-                  window->geometry.width,
-                  window->geometry.height);
-        wl_surface_set_opaque_region(window->surface, region);
-        wl_region_destroy(region);
-    } else {
-        wl_surface_set_opaque_region(window->surface, NULL);
-    }
-
-    if (display->swap_buffers_with_damage && buffer_age > 0) {
-        rect[0] = window->geometry.width / 4 - 1;
-        rect[1] = window->geometry.height / 4 - 1;
-        rect[2] = window->geometry.width / 2 + 2;
-        rect[3] = window->geometry.height / 2 + 2;
-        display->swap_buffers_with_damage(display->egl.dpy,
-                          window->egl_surface,
-                          rect, 1);
-    } else {
-        eglSwapBuffers(display->egl.dpy, window->egl_surface);
-    }
-    window->frames++;
-}
 
 static void
 pointer_handle_enter(void *data, struct wl_pointer *pointer,
@@ -677,8 +520,7 @@ keyboard_handle_key(void *data, struct wl_keyboard *keyboard,
             xdg_surface_unset_fullscreen(d->window->xdg_surface);
         else
             xdg_surface_set_fullscreen(d->window->xdg_surface, NULL);
-    } else if (key == KEY_ESC && state)
-        running = 0;
+    } else if (key == KEY_ESC && state) /*TODO something*/;
 }
 
 static void
@@ -800,58 +642,22 @@ static const struct wl_registry_listener registry_listener = {
     registry_handle_global_remove
 };
 
-static void
-signal_int(int signum)
+
+static struct display display = { 0 };
+static struct window  window  = { 0 };
+
+static int init_wayland_platform(void)
 {
-    running = 0;
-}
-
-static void
-usage(int error_code)
-{
-    fprintf(stderr, "Usage: simple-egl [OPTIONS]\n\n"
-        "  -f\tRun in fullscreen mode\n"
-        "  -o\tCreate an opaque surface\n"
-        "  -s\tUse a 16 bpp EGL config\n"
-        "  -b\tDon't sync to compositor redraw (eglSwapInterval 0)\n"
-        "  -h\tThis help text\n\n");
-
-    exit(error_code);
-}
-
-int
-main(int argc, char **argv)
-{
-    struct sigaction sigint;
-    struct display display = { 0 };
-    struct window  window  = { 0 };
-    int i, ret = 0;
-
     window.display = &display;
     display.window = &window;
-    window.geometry.width  = 250;
-    window.geometry.height = 250;
+    window.geometry.width  = 600;
+    window.geometry.height = 600;
     window.window_size = window.geometry;
     window.buffer_size = 32;
     window.frame_sync = 1;
 
-    for (i = 1; i < argc; i++) {
-        if (strcmp("-f", argv[i]) == 0)
-            window.fullscreen = 1;
-        else if (strcmp("-o", argv[i]) == 0)
-            window.opaque = 1;
-        else if (strcmp("-s", argv[i]) == 0)
-            window.buffer_size = 16;
-        else if (strcmp("-b", argv[i]) == 0)
-            window.frame_sync = 0;
-        else if (strcmp("-h", argv[i]) == 0)
-            usage(EXIT_SUCCESS);
-        else
-            usage(EXIT_FAILURE);
-    }
-
     display.display = wl_display_connect(NULL);
-    assert(display.display);
+    if (display.display < 0) return -1;
 
     display.registry = wl_display_get_registry(display.display);
     wl_registry_add_listener(display.registry,
@@ -861,27 +667,17 @@ main(int argc, char **argv)
 
     init_egl(&display, &window);
     create_surface(&window);
-    init_gl(&window);
 
     display.cursor_surface =
         wl_compositor_create_surface(display.compositor);
 
-    sigint.sa_handler = signal_int;
-    sigemptyset(&sigint.sa_mask);
-    sigint.sa_flags = SA_RESETHAND;
-    sigaction(SIGINT, &sigint, NULL);
+     wl_display_dispatch_pending(display.display);
+     return 0;
+ }
 
-    /* The mainloop here is a little subtle.  Redrawing will cause
-     * EGL to read events so we can just call
-     * wl_display_dispatch_pending() to handle any events that got
-     * queued up as a side effect. */
-    while (running && ret != -1) {
-        wl_display_dispatch_pending(display.display);
-        redraw(&window, NULL, 0);
-    }
 
-    fprintf(stderr, "simple-egl exiting\n");
-
+static void exit_wayaland_platform(void)
+{
     destroy_surface(&window);
     fini_egl(&display);
 
@@ -901,8 +697,6 @@ main(int argc, char **argv)
     wl_registry_destroy(display.registry);
     wl_display_flush(display.display);
     wl_display_disconnect(display.display);
-
-    return 0;
 }
 
 
@@ -910,28 +704,39 @@ main(int argc, char **argv)
 
 void ep_get_window_resolution(EGLint *width, EGLint *height)
 {
-    *width = xpf.width;
-    *height = xpf.height;
+    *width = window.geometry.width;
+    *height = window.geometry.height;
 }
 void ep_get_display_major_minor(EGLint *major, EGLint *minor)
 {
-    *major = xpf.major;
-    *minor = xpf.minor;
+    *major = display.egl.major;
+    *minor = display.egl.minor;
 }
 
 void *ep_get_native_window(EGLDisplay *disp, EGLContext *ctx, EGLSurface *surf, EGLConfig *config)
 {
-    init_x11_pf();
-    *disp = xpf.eglDisplay;
-    *ctx = xpf.eglContext;
-    *surf = xpf.eglSurface;
-    *config = 1;
-    return xpf.hWnd;
+    if (init_wayland_platform() < 0) return NULL;
+    *disp = display.egl.dpy;
+    *ctx = display.egl.ctx;
+    *surf = window.egl_surface;
+    *config = display.egl.conf;
+    return window.native;
+}
+
+EGLBoolean ep_SwapBuffers(EGLDisplay dpy, EGLSurface surface)
+{
+    EGLBoolean ret = eglSwapBuffers(dpy, surface);
+    wl_display_dispatch_pending(display.display);
+    return ret;
 }
 
 void *ep_get_user_data(void)
 {
-    return NULL;
+    return &window;
 }
 
+void ep_destroy_native_window(void)
+{
+    exit_wayaland_platform();
+}
 #endif
