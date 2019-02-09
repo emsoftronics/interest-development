@@ -140,7 +140,7 @@ static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *r
             break;
         case EGL_eglGetProcAddress:
 //            EGLAPI __eglMustCastToProperFunctionPointerType EGLAPIENTRY eglGetProcAddress(const char *procname);
-            *((long *) ret) = (long)eglGetProcAddress((const char *)args[0]); *retsize = sizeof(long);
+            *((long *) ret) = 0;/* (long)eglGetProcAddress((const char *)args[0]);*/ *retsize = sizeof(long);
             break;
         case EGL_eglGetConfigs:
             *((EGLBoolean *)ret) = eglGetConfigs(gs_egl_profile.eglDisplay, (EGLConfig *)args[1],

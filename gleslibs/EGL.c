@@ -4,6 +4,20 @@
 #include <string.h>
 #include <stdlib.h>
 
+#undef EGL_ENTRY
+#define EGL_ENTRY(_r, _api, ...) #_api,
+static char const * const egl_names[] = {
+    #include "egl_entries.in"
+    NULL
+};
+
+#undef EGL_ENTRY
+#define EGL_ENTRY(_r, _api, ...) _api,
+static void const *const egl_funcs[] = {
+    #include "egl_entries.in"
+    NULL
+};
+
 EGLAPI EGLint EGLAPIENTRY eglGetError(void)
 {
     EGLint ret = -1;
@@ -544,6 +558,7 @@ EGLAPI EGLBoolean EGLAPIENTRY eglCopyBuffers(EGLDisplay dpy, EGLSurface surface,
 EGLAPI __eglMustCastToProperFunctionPointerType EGLAPIENTRY
        eglGetProcAddress(const char *procname)
 {
+#if 0
     long ret = 0;
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(EGL_eglGetProcAddress, 1, sizeof(procname) + GL_STRLEN(procname) + 8);
@@ -554,6 +569,15 @@ EGLAPI __eglMustCastToProperFunctionPointerType EGLAPIENTRY
     DCC_END_CALL();
 #endif
     return (__eglMustCastToProperFunctionPointerType)ret;
+*/
+#else
+    int i = 0;
+    while (egl_names[i] != NULL) {
+        if (strcmp(procname, egl_names[i]) == 0) return (__eglMustCastToProperFunctionPointerType)egl_funcs[i];
+        i++;
+    }
+    return (__eglMustCastToProperFunctionPointerType)NULL;
+#endif
 }
 
 
