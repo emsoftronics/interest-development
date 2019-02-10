@@ -17,7 +17,7 @@
  */
 
 
-#include "config.h"
+//#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,19 +31,17 @@
 
 #include <wayland-client.h>
 #include <wayland-egl.h>
-#include <wayland-cursor.h>
 
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
-#include "xdg-shell-client-protocol.h"
 #include <sys/types.h>
 #include <unistd.h>
-#include "protocol/ivi-application-client-protocol.h"
+#include "ivi-application-client-protocol.h"
 #define IVI_SURFACE_ID 9000
 
-#include "shared/platform.h"
+#include "weston_platform.h"
 
 #ifndef EGL_EXT_swap_buffers_with_damage
 #define EGL_EXT_swap_buffers_with_damage 1
@@ -62,15 +60,8 @@ struct display {
     struct wl_display *display;
     struct wl_registry *registry;
     struct wl_compositor *compositor;
-    struct xdg_shell *shell;
     struct wl_seat *seat;
-    struct wl_pointer *pointer;
-    struct wl_touch *touch;
-    struct wl_keyboard *keyboard;
     struct wl_shm *shm;
-    struct wl_cursor_theme *cursor_theme;
-    struct wl_cursor *default_cursor;
-    struct wl_surface *cursor_surface;
     struct {
         EGLDisplay dpy;
         EGLContext ctx;
@@ -95,11 +86,10 @@ struct window {
     uint32_t benchmark_time, frames;
     struct wl_egl_window *native;
     struct wl_surface *surface;
-    struct xdg_surface *xdg_surface;
     struct ivi_surface *ivi_surface;
     EGLSurface egl_surface;
     struct wl_callback *callback;
-    int fullscreen, opaque, buffer_size, frame_sync;
+    int opaque, buffer_size, frame_sync;
 };
 
 
@@ -190,79 +180,6 @@ fini_egl(struct display *display)
     eglReleaseThread();
 }
 
-static GLuint
-create_shader(struct window *window, const char *source, GLenum shader_type)
-{
-    GLuint shader;
-    GLint status;
-
-    shader = glCreateShader(shader_type);
-    assert(shader != 0);
-
-    glShaderSource(shader, 1, (const char **) &source, NULL);
-    glCompileShader(shader);
-
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-    if (!status) {
-        char log[1000];
-        GLsizei len;
-        glGetShaderInfoLog(shader, 1000, &len, log);
-        fprintf(stderr, "Error: compiling %s: %*s\n",
-            shader_type == GL_VERTEX_SHADER ? "vertex" : "fragment",
-            len, log);
-        exit(1);
-    }
-
-    return shader;
-}
-
-
-static void
-handle_surface_configure(void *data, struct xdg_surface *surface,
-             int32_t width, int32_t height,
-             struct wl_array *states, uint32_t serial)
-{
-    struct window *window = data;
-    uint32_t *p;
-
-    window->fullscreen = 0;
-    wl_array_for_each(p, states) {
-        uint32_t state = *p;
-        switch (state) {
-        case XDG_SURFACE_STATE_FULLSCREEN:
-            window->fullscreen = 1;
-            break;
-        }
-    }
-
-    if (width > 0 && height > 0) {
-        if (!window->fullscreen) {
-            window->window_size.width = width;
-            window->window_size.height = height;
-        }
-        window->geometry.width = width;
-        window->geometry.height = height;
-    } else if (!window->fullscreen) {
-        window->geometry = window->window_size;
-    }
-
-    if (window->native)
-        wl_egl_window_resize(window->native,
-                     window->geometry.width,
-                     window->geometry.height, 0, 0);
-
-    xdg_surface_ack_configure(surface, serial);
-}
-
-static void
-handle_surface_delete(void *data, struct xdg_surface *xdg_surface)
-{
-}
-
-static const struct xdg_surface_listener xdg_surface_listener = {
-    handle_surface_configure,
-    handle_surface_delete,
-};
 
 static void
 handle_ivi_surface_configure(void *data, struct ivi_surface *ivi_surface,
@@ -274,31 +191,26 @@ handle_ivi_surface_configure(void *data, struct ivi_surface *ivi_surface,
 
     window->geometry.width = width;
     window->geometry.height = height;
-
-    if (!window->fullscreen)
-        window->window_size = window->geometry;
+    window->window_size = window->geometry;
 }
 
 static const struct ivi_surface_listener ivi_surface_listener = {
     handle_ivi_surface_configure,
 };
 
-static void
-create_xdg_surface(struct window *window, struct display *display)
-{
-    window->xdg_surface = xdg_shell_get_xdg_surface(display->shell,
-                            window->surface);
-
-    xdg_surface_add_listener(window->xdg_surface,
-                 &xdg_surface_listener, window);
-
-    xdg_surface_set_title(window->xdg_surface, "simple-egl");
-}
 
 static void
 create_ivi_surface(struct window *window, struct display *display)
 {
     uint32_t id_ivisurf = IVI_SURFACE_ID + (uint32_t)getpid();
+    char *option = NULL;
+    char *end;
+
+    option = getenv("QT_IVI_SURFACE_ID");
+    if (!option) option = getenv("IVI_CLIENT_SURFACE_ID");
+
+    if (option) id_ivisurf = strtol(option, &end, 0);
+
     window->ivi_surface =
         ivi_application_surface_create(display->ivi_application,
                            id_ivisurf, window->surface);
@@ -330,9 +242,7 @@ create_surface(struct window *window)
                            window->native, NULL);
 
 
-    if (display->shell) {
-        create_xdg_surface(window, display);
-    } else if (display->ivi_application ) {
+    if (display->ivi_application ) {
         create_ivi_surface(window, display);
     } else {
         assert(0);
@@ -344,12 +254,6 @@ create_surface(struct window *window)
 
     if (!window->frame_sync)
         eglSwapInterval(display->egl.dpy, 0);
-
-    if (!display->shell)
-        return;
-
-    if (window->fullscreen)
-        xdg_surface_set_fullscreen(window->xdg_surface, NULL);
 }
 
 static void
@@ -363,8 +267,6 @@ destroy_surface(struct window *window)
     eglDestroySurface(window->display->egl.dpy, window->egl_surface);
     wl_egl_window_destroy(window->native);
 
-    if (window->xdg_surface)
-        xdg_surface_destroy(window->xdg_surface);
     if (window->display->ivi_application)
         ivi_surface_destroy(window->ivi_surface);
     wl_surface_destroy(window->surface);
@@ -372,224 +274,6 @@ destroy_surface(struct window *window)
     if (window->callback)
         wl_callback_destroy(window->callback);
 }
-
-
-static void
-pointer_handle_enter(void *data, struct wl_pointer *pointer,
-             uint32_t serial, struct wl_surface *surface,
-             wl_fixed_t sx, wl_fixed_t sy)
-{
-    struct display *display = data;
-    struct wl_buffer *buffer;
-    struct wl_cursor *cursor = display->default_cursor;
-    struct wl_cursor_image *image;
-
-    if (display->window->fullscreen)
-        wl_pointer_set_cursor(pointer, serial, NULL, 0, 0);
-    else if (cursor) {
-        image = display->default_cursor->images[0];
-        buffer = wl_cursor_image_get_buffer(image);
-        if (!buffer)
-            return;
-        wl_pointer_set_cursor(pointer, serial,
-                      display->cursor_surface,
-                      image->hotspot_x,
-                      image->hotspot_y);
-        wl_surface_attach(display->cursor_surface, buffer, 0, 0);
-        wl_surface_damage(display->cursor_surface, 0, 0,
-                  image->width, image->height);
-        wl_surface_commit(display->cursor_surface);
-    }
-}
-
-static void
-pointer_handle_leave(void *data, struct wl_pointer *pointer,
-             uint32_t serial, struct wl_surface *surface)
-{
-}
-
-static void
-pointer_handle_motion(void *data, struct wl_pointer *pointer,
-              uint32_t time, wl_fixed_t sx, wl_fixed_t sy)
-{
-}
-
-static void
-pointer_handle_button(void *data, struct wl_pointer *wl_pointer,
-              uint32_t serial, uint32_t time, uint32_t button,
-              uint32_t state)
-{
-    struct display *display = data;
-
-    if (!display->window->xdg_surface)
-        return;
-
-    if (button == BTN_LEFT && state == WL_POINTER_BUTTON_STATE_PRESSED)
-        xdg_surface_move(display->window->xdg_surface,
-                         display->seat, serial);
-}
-
-static void
-pointer_handle_axis(void *data, struct wl_pointer *wl_pointer,
-            uint32_t time, uint32_t axis, wl_fixed_t value)
-{
-}
-
-static const struct wl_pointer_listener pointer_listener = {
-    pointer_handle_enter,
-    pointer_handle_leave,
-    pointer_handle_motion,
-    pointer_handle_button,
-    pointer_handle_axis,
-};
-
-static void
-touch_handle_down(void *data, struct wl_touch *wl_touch,
-          uint32_t serial, uint32_t time, struct wl_surface *surface,
-          int32_t id, wl_fixed_t x_w, wl_fixed_t y_w)
-{
-    struct display *d = (struct display *)data;
-
-    if (!d->shell)
-        return;
-
-    xdg_surface_move(d->window->xdg_surface, d->seat, serial);
-}
-
-static void
-touch_handle_up(void *data, struct wl_touch *wl_touch,
-        uint32_t serial, uint32_t time, int32_t id)
-{
-}
-
-static void
-touch_handle_motion(void *data, struct wl_touch *wl_touch,
-            uint32_t time, int32_t id, wl_fixed_t x_w, wl_fixed_t y_w)
-{
-}
-
-static void
-touch_handle_frame(void *data, struct wl_touch *wl_touch)
-{
-}
-
-static void
-touch_handle_cancel(void *data, struct wl_touch *wl_touch)
-{
-}
-
-static const struct wl_touch_listener touch_listener = {
-    touch_handle_down,
-    touch_handle_up,
-    touch_handle_motion,
-    touch_handle_frame,
-    touch_handle_cancel,
-};
-
-static void
-keyboard_handle_keymap(void *data, struct wl_keyboard *keyboard,
-               uint32_t format, int fd, uint32_t size)
-{
-}
-
-static void
-keyboard_handle_enter(void *data, struct wl_keyboard *keyboard,
-              uint32_t serial, struct wl_surface *surface,
-              struct wl_array *keys)
-{
-}
-
-static void
-keyboard_handle_leave(void *data, struct wl_keyboard *keyboard,
-              uint32_t serial, struct wl_surface *surface)
-{
-}
-
-static void
-keyboard_handle_key(void *data, struct wl_keyboard *keyboard,
-            uint32_t serial, uint32_t time, uint32_t key,
-            uint32_t state)
-{
-    struct display *d = data;
-
-    if (!d->shell)
-        return;
-
-    if (key == KEY_F11 && state) {
-        if (d->window->fullscreen)
-            xdg_surface_unset_fullscreen(d->window->xdg_surface);
-        else
-            xdg_surface_set_fullscreen(d->window->xdg_surface, NULL);
-    } else if (key == KEY_ESC && state) /*TODO something*/;
-}
-
-static void
-keyboard_handle_modifiers(void *data, struct wl_keyboard *keyboard,
-              uint32_t serial, uint32_t mods_depressed,
-              uint32_t mods_latched, uint32_t mods_locked,
-              uint32_t group)
-{
-}
-
-static const struct wl_keyboard_listener keyboard_listener = {
-    keyboard_handle_keymap,
-    keyboard_handle_enter,
-    keyboard_handle_leave,
-    keyboard_handle_key,
-    keyboard_handle_modifiers,
-};
-
-static void
-seat_handle_capabilities(void *data, struct wl_seat *seat,
-             enum wl_seat_capability caps)
-{
-    struct display *d = data;
-
-    if ((caps & WL_SEAT_CAPABILITY_POINTER) && !d->pointer) {
-        d->pointer = wl_seat_get_pointer(seat);
-        wl_pointer_add_listener(d->pointer, &pointer_listener, d);
-    } else if (!(caps & WL_SEAT_CAPABILITY_POINTER) && d->pointer) {
-        wl_pointer_destroy(d->pointer);
-        d->pointer = NULL;
-    }
-
-    if ((caps & WL_SEAT_CAPABILITY_KEYBOARD) && !d->keyboard) {
-        d->keyboard = wl_seat_get_keyboard(seat);
-        wl_keyboard_add_listener(d->keyboard, &keyboard_listener, d);
-    } else if (!(caps & WL_SEAT_CAPABILITY_KEYBOARD) && d->keyboard) {
-        wl_keyboard_destroy(d->keyboard);
-        d->keyboard = NULL;
-    }
-
-    if ((caps & WL_SEAT_CAPABILITY_TOUCH) && !d->touch) {
-        d->touch = wl_seat_get_touch(seat);
-        wl_touch_set_user_data(d->touch, d);
-        wl_touch_add_listener(d->touch, &touch_listener, d);
-    } else if (!(caps & WL_SEAT_CAPABILITY_TOUCH) && d->touch) {
-        wl_touch_destroy(d->touch);
-        d->touch = NULL;
-    }
-}
-
-static const struct wl_seat_listener seat_listener = {
-    seat_handle_capabilities,
-};
-
-static void
-xdg_shell_ping(void *data, struct xdg_shell *shell, uint32_t serial)
-{
-    xdg_shell_pong(shell, serial);
-}
-
-static const struct xdg_shell_listener xdg_shell_listener = {
-    xdg_shell_ping,
-};
-
-#define XDG_VERSION 5 /* The version of xdg-shell that we implement */
-#ifdef static_assert
-static_assert(XDG_VERSION == XDG_SHELL_VERSION_CURRENT,
-          "Interface version doesn't match implementation version");
-#endif
 
 static void
 registry_handle_global(void *data, struct wl_registry *registry,
@@ -601,11 +285,6 @@ registry_handle_global(void *data, struct wl_registry *registry,
         d->compositor =
             wl_registry_bind(registry, name,
                      &wl_compositor_interface, 1);
-    } else if (strcmp(interface, "xdg_shell") == 0) {
-        d->shell = wl_registry_bind(registry, name,
-                        &xdg_shell_interface, 1);
-        xdg_shell_add_listener(d->shell, &xdg_shell_listener, d);
-        xdg_shell_use_unstable_version(d->shell, XDG_VERSION);
     } else if (strcmp(interface, "wl_seat") == 0) {
         d->seat = wl_registry_bind(registry, name,
                        &wl_seat_interface, 1);
@@ -613,17 +292,6 @@ registry_handle_global(void *data, struct wl_registry *registry,
     } else if (strcmp(interface, "wl_shm") == 0) {
         d->shm = wl_registry_bind(registry, name,
                       &wl_shm_interface, 1);
-        d->cursor_theme = wl_cursor_theme_load(NULL, 32, d->shm);
-        if (!d->cursor_theme) {
-            fprintf(stderr, "unable to load default theme\n");
-            return;
-        }
-        d->default_cursor =
-            wl_cursor_theme_get_cursor(d->cursor_theme, "left_ptr");
-        if (!d->default_cursor) {
-            fprintf(stderr, "unable to load default left pointer\n");
-            // TODO: abort ?
-        }
     } else if (strcmp(interface, "ivi_application") == 0) {
         d->ivi_application =
             wl_registry_bind(registry, name,
@@ -642,6 +310,43 @@ static const struct wl_registry_listener registry_listener = {
     registry_handle_global_remove
 };
 
+static int get_screen_resolution(int screen_id, EGLint *width, EGLint *height)
+{
+    unsigned int* screenIDs = NULL;
+    unsigned int numberOfScreens = 0;
+    unsigned int reqId = 0;
+    int ret = -1;
+
+    if ((!width) || (!height))  goto ResError;
+    if (screen_id < 0) screen_id = 0;
+    *width = 0; *height = 0;
+
+    if (ilm_init() != 0) {
+        printf("ilm_init failed\n");
+        goto ResError;
+    }
+
+    if (ilm_getScreenIDs(&numberOfScreens, &screenIDs) != 0) {
+        printf("ilm_getScreenIDs failed!!\n");
+        goto ResError;
+    }
+    else {
+        if(((int)numberOfScreens == 0) || (screen_id >= (int)numberOfScreens)) {
+            goto ResError;
+        }
+        reqId = screenIDs[screen_id];
+    }
+
+    if (ilm_getScreenResolution(reqId, width, height) != 0) {
+        printf("ilm_getScreenResolution failed\n");
+        goto ResError;
+    }
+    ret = 0;
+ResError:
+    if (screenIDs) free(screenIDs);
+    ilm_destroy();
+    return ret;
+}
 
 static struct display display = { 0 };
 static struct window  window  = { 0 };
@@ -650,8 +355,10 @@ static int init_wayland_platform(void)
 {
     window.display = &display;
     display.window = &window;
-    window.geometry.width  = 600;
-    window.geometry.height = 600;
+    if (get_screen_resolution(0, &window.geometry.width, & window.geometry.height) < 0) {
+        window.geometry.width  = 600;
+        window.geometry.height = 600;
+    }
     window.window_size = window.geometry;
     window.buffer_size = 32;
     window.frame_sync = 1;
@@ -668,25 +375,15 @@ static int init_wayland_platform(void)
     init_egl(&display, &window);
     create_surface(&window);
 
-    display.cursor_surface =
-        wl_compositor_create_surface(display.compositor);
-
-     wl_display_dispatch_pending(display.display);
-     return 0;
- }
+    wl_display_dispatch_pending(display.display);
+    return 0;
+}
 
 
 static void exit_wayaland_platform(void)
 {
     destroy_surface(&window);
     fini_egl(&display);
-
-    wl_surface_destroy(display.cursor_surface);
-    if (display.cursor_theme)
-        wl_cursor_theme_destroy(display.cursor_theme);
-
-    if (display.shell)
-        xdg_shell_destroy(display.shell);
 
     if (display.ivi_application)
         ivi_application_destroy(display.ivi_application);
