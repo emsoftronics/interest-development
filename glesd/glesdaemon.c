@@ -84,7 +84,8 @@ static egl_profile_t gs_egl_profile = {0};
 static void init_egl_profile(void)
 {
     gs_egl_profile.hWnd = (EGLNativeWindowType)ep_get_native_window(&gs_egl_profile.eglDisplay,
-        &gs_egl_profile.eglContext, &gs_egl_profile.eglSurface, &gs_egl_profile.eglConfig);\
+        &gs_egl_profile.eglContext, &gs_egl_profile.eglSurface, &gs_egl_profile.eglConfig);
+
      ep_get_display_major_minor(&gs_egl_profile.major, &gs_egl_profile.minor);
      ep_get_window_resolution(&gs_egl_profile.width, &gs_egl_profile.height);
      gs_egl_profile.user_data_ref = ep_get_user_data();
@@ -122,6 +123,20 @@ static void clear()
         free(node);
     }
 }
+
+static void printCoord()
+{
+    int i, len = 30;
+    GLfloat *ptr = NULL;
+    if (!gs_vhead) {printf("No coordinates available!!\n"); return;}
+    ptr = (GLfloat *)gs_vhead->dataptr;
+    if (!ptr) return;
+    printf("{\n");
+    for (i = 0; i < len; i++) printf("%5.2f, ", (float)ptr[i]);
+    printf("}\n");
+}
+
+#define SHOWCOORD() //printCoord()
 
 static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *retsize)
 {
@@ -414,6 +429,7 @@ static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *r
             break;
         case GLESv2_glDrawArrays:
             glDrawArrays (G_EN(0), G_IN(1), G_SII(2));
+            SHOWCOORD();
             clear();
             break;
         case GLESv2_glDrawElements:
@@ -428,9 +444,11 @@ static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *r
             break;
         case GLESv2_glFinish:
             glFinish ();
+            clear();
             break;
         case GLESv2_glFlush:
             glFlush ();
+            clear();
             break;
         case GLESv2_glFramebufferRenderbuffer:
             glFramebufferRenderbuffer (G_EN(0), G_EN(1), G_EN(2), G_UI(3));
@@ -722,11 +740,16 @@ static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *r
             {
                 void *vertex_buffer = NULL;
                 void *tptr = G_VPTR(5);
-                if ((long)tptr > 256) {
+
+                if ((unsigned long)tptr > 256) {
                     vertex_buffer = malloc(4<<10);
                     if (vertex_buffer) {
                         memcpy(vertex_buffer, tptr, 4<<10);
                         push(vertex_buffer);
+                        SHOWCOORD();
+                    }
+                    else {
+                        printf("No memory available for vertex\n");
                     }
                     tptr = vertex_buffer;
                 }
@@ -743,6 +766,12 @@ static void fcall_handler(int fid, int argc, void **args, void *ret, uint32_t *r
 
 int main (int argc, char **argv)
 {
+    init_egl_profile();
+#if 1
+    printf("testmain starting\n");
+    testmain(gs_egl_profile.eglDisplay, gs_egl_profile.eglSurface);
+    printf("testmain ending\n");
+#endif
 #ifdef DEFAULT_FCALL_SERVER
     RUN_DEFAULT_FCALL_SERVER(fcall_handler);
 #endif

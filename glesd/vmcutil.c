@@ -214,7 +214,7 @@ void handle_ipc_calls(int cfd, ipc_fcall_t fcall_handler)
 {
     ccontext_t context = {0};
     context.sockfd = cfd;
-    while(watch_fd(context.sockfd, -1) >= 0) {
+    while(watch_fd(context.sockfd, -1) > 0) {
         if (rcv_call(&context) == 0) {
                 int argc = CHARGC((&context));
                 int fid = METHODID((&context));
@@ -227,12 +227,9 @@ void handle_ipc_calls(int cfd, ipc_fcall_t fcall_handler)
                 if (fcall_handler)
                     fcall_handler(fid, argc, args, ret, &(context.frame.size));
                 SMEM_WRITE_UNLOCK((&context));
-                context.frame.offset = (long)ret - (long)(context.smemref);
+                context.frame.offset = (unsigned long)ret - (unsigned long)(context.smemref);
                 clear_rx_buffer(context.sockfd);
-                if (send_data(context.sockfd, &context.frame, sizeof(qframe_t)) < sizeof(qframe_t)) {
-                    reset_context(&context);
-                    break;
-                }
+                if (send_data(context.sockfd, &context.frame, sizeof(qframe_t)) < (int)sizeof(qframe_t)) break;
         }
         else break;
     }
@@ -353,15 +350,16 @@ void *get_arg_ptr(ccontext_t *ctx, int index)
         if (fhdr->arg[index].type == 2)  {
             void **ptr = (void **) (((char *)fhdr) + *((uint32_t *)arg_ptr));
             int i = 0;
-            for(i = 0; ptr[i] != NULL; i++)
-                ptr[i] = (void *)(((char *)fhdr)+(long)ptr[i]);
+            for(i = 0; ptr[i] != NULL; i++) {
+                ptr[i] = (void *)(((char *)fhdr)+(uint32_t)ptr[i]);
+            }
                 fhdr->arg[index].type = 1;
             return ptr;
         }
         else {
-            if (*((int32_t *)arg_ptr) < (long)(fhdr->arg)-(long)fhdr
+            if (*((uint32_t *)arg_ptr) < (unsigned long)(fhdr->arg)-(unsigned long)fhdr
                 + (fhdr->argc * sizeof(datamem_t))-1)
-                return (void *)(*((long *)arg_ptr));
+                return (void *)(*((uint32_t *)arg_ptr));
             else return ((char *)fhdr) + *((uint32_t *)arg_ptr);
         }
     }

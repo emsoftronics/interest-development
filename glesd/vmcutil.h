@@ -9,11 +9,12 @@
 #define CHARGC(_ctx)    ((fcall_hdr_t *)(_ctx->smemref))->argc
 #define CHARGS(_ctx)    ((fcall_hdr_t *)(_ctx->smemref))->arg
 #define METHODID(_ctx)  ((fcall_hdr_t *)(_ctx->smemref))->methodid
-#define CHARG_OFFSET(_ctx)  ((long)(((fcall_hdr_t *)(0))->arg) + CHARGC(_ctx) * sizeof(datamem_t))
+#define CHARG_OFFSET(_ctx)  ((unsigned long)(((fcall_hdr_t *)(0))->arg) + CHARGC(_ctx) * sizeof(datamem_t))
 
 
 #define SMEM_WRITE_LOCK(_ctx) ({\
-                        while(((fcall_hdr_t *)(_ctx->smemref))->swlocked) usleep(500); \
+                        while(((fcall_hdr_t *)(_ctx->smemref))->swlocked) { usleep(500); \
+                        if(check_connection_termination(_ctx->sockfd)) break;}          \
                         ((fcall_hdr_t *)(_ctx->smemref))->swlocked = 1;})
 
 #define SMEM_WRITE_UNLOCK(_ctx) ({((fcall_hdr_t *)(_ctx->smemref))->swlocked = 0;})
@@ -45,7 +46,7 @@
 
 #define UPDATE_PARG_MEM(_ctx, _arg, _size, _aindex) _argoff =                           \
                        ((fcall_hdr_t *)(_ctx->smemref))->endoff;                        \
-                       if ((long)(_arg) < CHARG_OFFSET(_ctx)) {                         \
+                       if ((unsigned long)(_arg) < CHARG_OFFSET(_ctx)) {                         \
                        memcpy((char*)(_ctx->smemref) + CHARGS(_ctx)[_aindex].offset,    \
                         &(_arg), sizeof(void *));                                       \
                        } else {                                                         \
@@ -56,7 +57,7 @@
 
 #define UPDATE_ARRAY_OF_MEM(_ctx, _arg, _count, _lenptr, _aindex)                       \
                        _argoff =  ((fcall_hdr_t *)(_ctx->smemref))->endoff;             \
-                       if ((long)(_arg) < CHARG_OFFSET(_ctx)) {                         \
+                       if ((unsigned long)(_arg) < CHARG_OFFSET(_ctx)) {                         \
                         memcpy((char*)(_ctx->smemref) + CHARGS(_ctx)[_aindex].offset,   \
                             &(_arg), sizeof(void *));                                   \
                        } else {                                                         \
@@ -69,7 +70,7 @@
                                 _argoff =  ((fcall_hdr_t *)(_ctx->smemref))->endoff;    \
                                 if ((_arg[_tloop] == NULL) || (_tloop >= _count)) {     \
                                     ptr[_tloop] = 0;} else  {                           \
-                                if ((long)(_lenptr) > 0) _len = (int)_lenptr[_tloop] ;  \
+                                if ((unsigned long)(_lenptr) > 0) _len = (int)_lenptr[_tloop] ;  \
                                 else _len = strlen((char *)_arg[_tloop]) + 1;           \
                                 memcpy((char*)(_ctx->smemref) + _argoff,                \
                                 (void *)_arg[_tloop], _len);  ptr[_tloop] = (void *)_argoff;   \
@@ -151,7 +152,7 @@ extern ccontext_t *def_client(void);
                 UPDATE_ARRAY_OF_MEM(_ctx, _arg, _count, _lenptr, _aindex) while(0)
 
 #define DCC_UPDATE_NON_CONST_PTR_ON_RET(_dstptr, _size, _aindex)                        \
-                        if ((long)(_dstptr) > CHARG_OFFSET(_ctx))                       \
+                        if ((unsigned long)(_dstptr) > CHARG_OFFSET(_ctx))                       \
                         memcpy((void *)(_dstptr), get_arg_ptr(_ctx, _aindex), _size)
 
 #define DCC_RET_VAL(_retvar) void *tptr = call_function(_ctx);                  \
@@ -166,8 +167,11 @@ extern ccontext_t *def_client(void);
 
 #define RUN_FCALL_SERVER(_server, _fchndlr) ({int _sockfd,  _cfd;               \
                         _sockfd = make_local_server((const char *)(_server));   \
-                        while(1) { _cfd = wait_for_client(_sockfd, -1);         \
+                        while(1) {printf("Waiting for rendering client\n");    \
+                        _cfd = wait_for_client(_sockfd, -1);         \
+                        printf("Rendering client captured\n");    \
                         handle_ipc_calls(_cfd, _fchndlr);}                      \
+                        printf("Rendering client terminated\n");    \
                         close(_sockfd); })
 
 #ifdef DEFAULT_FCALL_SERVER
