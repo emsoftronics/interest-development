@@ -323,7 +323,10 @@ char *get_temp_dir(void)
 void clear_rx_buffer(int sockfd)
 {
     char discard_buf[128];
-    while (watch_fd(sockfd, 0) > 0) read(sockfd, discard_buf, sizeof(discard_buf));
+    while (watch_fd(sockfd, 0) > 0) {
+        if (check_connection_termination(sockfd) > 0) break;
+        else read(sockfd, discard_buf, sizeof(discard_buf));
+    }
 }
 
 int send_data(int sockfd, void *buffer, unsigned long size)

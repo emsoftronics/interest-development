@@ -20,7 +20,10 @@
   # the build target executable:
 
 
-all: libGLESv2_ipc.so libEGL_ipc.so
+all: libGLESv1_CM_ipc.so libGLESv2_ipc.so libEGL_ipc.so
+
+libGLESv1_CM_ipc.so: cutil.o vmcutil.o GLESv1_CM.o
+	$(CC) -shared $(CFLAGS) -o $@ -pthread cutil.o vmcutil.o GLESv1_CM.o
 
 libGLESv2_ipc.so: cutil.o vmcutil.o GLESv2.o
 	$(CC) -shared $(CFLAGS) -o $@ -pthread cutil.o vmcutil.o GLESv2.o
@@ -35,6 +38,6 @@ clean:
 	@rm *.o
 
 fclean:
-	@rm *.o *so
+	@rm *.o *.so
 
 

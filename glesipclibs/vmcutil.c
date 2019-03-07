@@ -227,7 +227,7 @@ void handle_ipc_calls(int cfd, ipc_fcall_t fcall_handler)
                 if (fcall_handler)
                     fcall_handler(fid, argc, args, ret, &(context.frame.size));
                 SMEM_WRITE_UNLOCK((&context));
-                context.frame.offset = (long)ret - (long)(context.smemref);
+                context.frame.offset = (unsigned long)ret - (unsigned long)(context.smemref);
                 clear_rx_buffer(context.sockfd);
                 if (send_data(context.sockfd, &context.frame, sizeof(qframe_t)) < sizeof(qframe_t)) {
                     reset_context(&context);
@@ -354,14 +354,14 @@ void *get_arg_ptr(ccontext_t *ctx, int index)
             void **ptr = (void **) (((char *)fhdr) + *((uint32_t *)arg_ptr));
             int i = 0;
             for(i = 0; ptr[i] != NULL; i++)
-                ptr[i] = (void *)(((char *)fhdr)+(long)ptr[i]);
+                ptr[i] = (void *)(((char *)fhdr)+(unsigned long)ptr[i]);
                 fhdr->arg[index].type = 1;
             return ptr;
         }
         else {
-            if (*((int32_t *)arg_ptr) < (long)(fhdr->arg)-(long)fhdr
+            if (*((uint32_t *)arg_ptr) < (unsigned long)(fhdr->arg)-(unsigned long)fhdr
                 + (fhdr->argc * sizeof(datamem_t))-1)
-                return (void *)(*((long *)arg_ptr));
+                return (void *)(*((uint32_t *)arg_ptr));
             else return ((char *)fhdr) + *((uint32_t *)arg_ptr);
         }
     }

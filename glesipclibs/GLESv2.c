@@ -831,13 +831,13 @@ GL_APICALL GLint GL_APIENTRY glGetAttribLocation (GLuint program, const GLchar *
 GL_APICALL void GL_APIENTRY glGetBooleanv (GLenum pname, GLboolean *data)
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
-    DCC_START_CALL(GLESv2_glGetBooleanv, 2, sizeof(pname) + sizeof(data) + sizeof(*data) + 1);
+    DCC_START_CALL(GLESv2_glGetBooleanv, 2, sizeof(pname) + sizeof(data) + 512);
     DCC_ADD_ARG(pname, 0);
     DCC_ADD_ARG(data, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(data, sizeof(*data), 1);
+    DCC_ADD_APTR_MEM(data, 500, 1);
     DCC_RET_ONLY();
-    DCC_UPDATE_NON_CONST_PTR_ON_RET(data, sizeof(*data), 1);
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(data, 500, 1);
     DCC_END_CALL();
 #endif
 }
@@ -846,14 +846,14 @@ GL_APICALL void GL_APIENTRY glGetBufferParameteriv (GLenum target, GLenum pname,
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(GLESv2_glGetBufferParameteriv, 3, sizeof(target) + sizeof(pname) + sizeof(params)
-        + sizeof(*params) + 1);
+        + 512);
     DCC_ADD_ARG(target, 0);
     DCC_ADD_ARG(pname, 0);
     DCC_ADD_ARG(params, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(params, sizeof(*params), 2);
+    DCC_ADD_APTR_MEM(params, 500, 2);
     DCC_RET_ONLY();
-    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, sizeof(*params), 2);
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, 500, 2);
     DCC_END_CALL();
 #endif
 }
@@ -873,13 +873,13 @@ GL_APICALL GLenum GL_APIENTRY glGetError (void)
 GL_APICALL void GL_APIENTRY glGetFloatv (GLenum pname, GLfloat *data)
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
-    DCC_START_CALL(GLESv2_glGetFloatv, 2, sizeof(pname) + sizeof(data) + sizeof(*data) + 1);
+    DCC_START_CALL(GLESv2_glGetFloatv, 2, sizeof(pname) + sizeof(data) + 512);
     DCC_ADD_ARG(pname, 0);
     DCC_ADD_ARG(data, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(data, sizeof(*data), 1);
+    DCC_ADD_APTR_MEM(data, 500, 1);
     DCC_RET_ONLY();
-    DCC_UPDATE_NON_CONST_PTR_ON_RET(data, sizeof(*data), 1);
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(data, 500, 1);
     DCC_END_CALL();
 #endif
 }
@@ -889,15 +889,15 @@ GL_APICALL void GL_APIENTRY glGetFramebufferAttachmentParameteriv (GLenum target
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(GLESv2_glGetFramebufferAttachmentParameteriv, 4, sizeof(target) + sizeof(attachment)
-        + sizeof(pname) + sizeof(params) + sizeof(*params) + 1);
+        + sizeof(pname) + sizeof(params) + 512);
     DCC_ADD_ARG(target, 0);
     DCC_ADD_ARG(attachment, 0);
     DCC_ADD_ARG(pname, 0);
     DCC_ADD_ARG(params, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(params, sizeof(*params), 3);
+    DCC_ADD_APTR_MEM(params, 500, 3);
     DCC_RET_ONLY();
-    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, sizeof(*params), 3);
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, 500, 3);
     DCC_END_CALL();
 #endif
 }
@@ -905,13 +905,13 @@ GL_APICALL void GL_APIENTRY glGetFramebufferAttachmentParameteriv (GLenum target
 GL_APICALL void GL_APIENTRY glGetIntegerv (GLenum pname, GLint *data)
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
-    DCC_START_CALL(GLESv2_glGetIntegerv, 2, sizeof(pname) + sizeof(data) + sizeof(*data) + 1);
+    DCC_START_CALL(GLESv2_glGetIntegerv, 2, sizeof(pname) + sizeof(data) + 512);
     DCC_ADD_ARG(pname, 0);
     DCC_ADD_ARG(data, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(data, sizeof(*data), 1);
+    DCC_ADD_APTR_MEM(data, 500, 1);
     DCC_RET_ONLY();
-    DCC_UPDATE_NON_CONST_PTR_ON_RET(data, sizeof(*data), 1);
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(data, 500, 1);
     DCC_END_CALL();
 #endif
 }
@@ -920,14 +920,14 @@ GL_APICALL void GL_APIENTRY glGetProgramiv (GLuint program, GLenum pname, GLint 
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(GLESv2_glGetProgramiv, 3, sizeof(program) + sizeof(pname) + sizeof(params)
-        + sizeof(*params) + 1);
+        + 512);
     DCC_ADD_ARG(program, 0);
     DCC_ADD_ARG(pname, 0);
     DCC_ADD_ARG(params, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(params, sizeof(*params), 2);
+    DCC_ADD_APTR_MEM(params, 500, 2);
     DCC_RET_ONLY();
-    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, sizeof(*params), 2);
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, 500, 2);
     DCC_END_CALL();
 #endif
 }
@@ -956,14 +956,14 @@ GL_APICALL void GL_APIENTRY glGetRenderbufferParameteriv (GLenum target, GLenum 
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(GLESv2_glGetRenderbufferParameteriv, 3, sizeof(target) + sizeof(pname) + sizeof(params)
-        + sizeof(*params) + 1);
+        + 512);
     DCC_ADD_ARG(target, 0);
     DCC_ADD_ARG(pname, 0);
     DCC_ADD_ARG(params, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(params, sizeof(*params), 2);
+    DCC_ADD_APTR_MEM(params, 500, 2);
     DCC_RET_ONLY();
-    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, sizeof(*params), 2);
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, 500, 2);
     DCC_END_CALL();
 #endif
 }
@@ -972,14 +972,14 @@ GL_APICALL void GL_APIENTRY glGetShaderiv (GLuint shader, GLenum pname, GLint *p
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(GLESv2_glGetShaderiv, 3, sizeof(shader) + sizeof(pname) + sizeof(params)
-        + sizeof(*params) + 1);
+        + 512);
     DCC_ADD_ARG(shader, 0);
     DCC_ADD_ARG(pname, 0);
     DCC_ADD_ARG(params, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(params, sizeof(*params), 2);
+    DCC_ADD_APTR_MEM(params, 500, 2);
     DCC_RET_ONLY();
-    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, sizeof(*params), 2);
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, 500, 2);
     DCC_END_CALL();
 #endif
 }
@@ -1070,14 +1070,14 @@ GL_APICALL void GL_APIENTRY glGetTexParameterfv (GLenum target, GLenum pname, GL
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(GLESv2_glGetTexParameterfv, 3, sizeof(target) + sizeof(pname) + sizeof(params)
-        + sizeof(*params) + 1);
+        + 512);
     DCC_ADD_ARG(target, 0);
     DCC_ADD_ARG(pname, 0);
     DCC_ADD_ARG(params, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(params, sizeof(*params), 2);
+    DCC_ADD_APTR_MEM(params, 500, 2);
     DCC_RET_ONLY();
-    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, sizeof(*params), 2);
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, 500, 2);
     DCC_END_CALL();
 #endif
 }
@@ -1086,14 +1086,14 @@ GL_APICALL void GL_APIENTRY glGetTexParameteriv (GLenum target, GLenum pname, GL
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(GLESv2_glGetTexParameteriv, 3, sizeof(target) + sizeof(pname) + sizeof(params)
-        + sizeof(*params) + 1);
+        + 512);
     DCC_ADD_ARG(target, 0);
     DCC_ADD_ARG(pname, 0);
     DCC_ADD_ARG(params, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(params, sizeof(*params), 2);
+    DCC_ADD_APTR_MEM(params, 500, 2);
     DCC_RET_ONLY();
-    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, sizeof(*params), 2);
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, 500, 2);
     DCC_END_CALL();
 #endif
 }
@@ -1102,14 +1102,14 @@ GL_APICALL void GL_APIENTRY glGetUniformfv (GLuint program, GLint location, GLfl
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(GLESv2_glGetUniformfv, 3, sizeof(program) + sizeof(location) + sizeof(params)
-        + sizeof(*params) + 1);
+        + 512);
     DCC_ADD_ARG(program, 0);
     DCC_ADD_ARG(location, 0);
     DCC_ADD_ARG(params, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(params, sizeof(*params), 2);
+    DCC_ADD_APTR_MEM(params, 500, 2);
     DCC_RET_ONLY();
-    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, sizeof(*params), 2);
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, 500, 2);
     DCC_END_CALL();
 #endif
 }
@@ -1118,14 +1118,14 @@ GL_APICALL void GL_APIENTRY glGetUniformiv (GLuint program, GLint location, GLin
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(GLESv2_glGetUniformiv, 3, sizeof(program) + sizeof(location) + sizeof(params)
-        + sizeof(*params) + 1);
+        + 512);
     DCC_ADD_ARG(program, 0);
     DCC_ADD_ARG(location, 0);
     DCC_ADD_ARG(params, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(params, sizeof(*params), 2);
+    DCC_ADD_APTR_MEM(params, 500, 2);
     DCC_RET_ONLY();
-    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, sizeof(*params), 2);
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, 500, 2);
     DCC_END_CALL();
 #endif
 }
@@ -1151,14 +1151,14 @@ GL_APICALL void GL_APIENTRY glGetVertexAttribfv (GLuint index, GLenum pname, GLf
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(GLESv2_glGetVertexAttribfv, 3, sizeof(index) + sizeof(pname) + sizeof(params)
-        + sizeof(*params) + 1);
+        + 512);
     DCC_ADD_ARG(index, 0);
     DCC_ADD_ARG(pname, 0);
     DCC_ADD_ARG(params, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(params, sizeof(*params), 2);
+    DCC_ADD_APTR_MEM(params, 500, 2);
     DCC_RET_ONLY();
-    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, sizeof(*params), 2);
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, 500, 2);
     DCC_END_CALL();
 #endif
 }
@@ -1167,14 +1167,14 @@ GL_APICALL void GL_APIENTRY glGetVertexAttribiv (GLuint index, GLenum pname, GLi
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(GLESv2_glGetVertexAttribiv, 3, sizeof(index) + sizeof(pname) + sizeof(params)
-        + sizeof(*params) + 1);
+        + 512);
     DCC_ADD_ARG(index, 0);
     DCC_ADD_ARG(pname, 0);
     DCC_ADD_ARG(params, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(params, sizeof(*params), 2);
+    DCC_ADD_APTR_MEM(params, 500, 2);
     DCC_RET_ONLY();
-    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, sizeof(*params), 2);
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, 500, 2);
     DCC_END_CALL();
 #endif
 }
@@ -1182,14 +1182,15 @@ GL_APICALL void GL_APIENTRY glGetVertexAttribiv (GLuint index, GLenum pname, GLi
 GL_APICALL void GL_APIENTRY glGetVertexAttribPointerv (GLuint index, GLenum pname, void **pointer)
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
-    DCC_START_CALL(GLESv2_glGetVertexAttribPointerv, 3, sizeof(index) + sizeof(pname) + 2*sizeof(void*) + 1);
+    DCC_START_CALL(GLESv2_glGetVertexAttribPointerv, 3, sizeof(index) + sizeof(pname) + sizeof(pointer)
+    + 20*sizeof(void**) + 1);
     DCC_ADD_ARG(index, 0);
     DCC_ADD_ARG(pname, 0);
-    DCC_ADD_ARG(pointer, 1);
+    DCC_ADD_ARG(*pointer, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(pointer, sizeof(*pointer), 2);
+    DCC_ADD_APTR_MEM(*pointer, 20*sizeof(**pointer), 2);
     DCC_RET_ONLY();
-    DCC_UPDATE_NON_CONST_PTR_ON_RET(pointer, sizeof(*pointer), 2);
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(*pointer, 20*sizeof(*pointer), 2);
     DCC_END_CALL();
 #endif
 }
@@ -1577,14 +1578,14 @@ GL_APICALL void GL_APIENTRY glTexParameterfv (GLenum target, GLenum pname, const
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(GLESv2_glTexParameterfv, 3, sizeof(target) + sizeof(pname) + sizeof(params)
-        + sizeof(*params) + 1);
+        + 512);
     DCC_ADD_ARG(target, 0);
     DCC_ADD_ARG(pname, 0);
     DCC_ADD_ARG(params, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(params, sizeof(*params), 2);
+    DCC_ADD_APTR_MEM(params, 500, 2);
     DCC_RET_ONLY();
-    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, sizeof(*params), 2);
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, 500, 2);
     DCC_END_CALL();
 #endif
 }
@@ -1607,14 +1608,14 @@ GL_APICALL void GL_APIENTRY glTexParameteriv (GLenum target, GLenum pname, const
 {
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(GLESv2_glTexParameteriv, 3, sizeof(target) + sizeof(pname) + sizeof(params)
-        + sizeof(*params) + 1);
+        + 512);
     DCC_ADD_ARG(target, 0);
     DCC_ADD_ARG(pname, 0);
     DCC_ADD_ARG(params, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(params, sizeof(*params), 2);
+    DCC_ADD_APTR_MEM(params, 500, 2);
     DCC_RET_ONLY();
-    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, sizeof(*params), 2);
+    DCC_UPDATE_NON_CONST_PTR_ON_RET(params, 500, 2);
     DCC_END_CALL();
 #endif
 }
@@ -2060,7 +2061,7 @@ GL_APICALL void GL_APIENTRY glVertexAttribPointer (GLuint index, GLint size, GLe
 #ifdef DEFAULT_CLIENT_CONTEXT
     DCC_START_CALL(GLESv2_glVertexAttribPointer, 6, sizeof(index) + sizeof(size) + sizeof(type)
         + sizeof(normalized) + sizeof(stride) + sizeof(pointer)
-        + (((long)pointer < 256)?0:(4<<10)) + 16);
+        + (((unsigned long)pointer < 256)?0:(4<<10)) + 16);
     DCC_ADD_ARG(index, 0);
     DCC_ADD_ARG(size, 0);
     DCC_ADD_ARG(type, 0);
@@ -2068,7 +2069,7 @@ GL_APICALL void GL_APIENTRY glVertexAttribPointer (GLuint index, GLint size, GLe
     DCC_ADD_ARG(stride, 0);
     DCC_ADD_ARG(pointer, 1);
     DCC_ARG_OVER();
-    DCC_ADD_APTR_MEM(pointer, (((long)pointer < 256)?0:(4<<10)), 5);
+    DCC_ADD_APTR_MEM(pointer, (((unsigned long)pointer < 256)?0:(4<<8)), 5);
     DCC_RET_ONLY();
     DCC_END_CALL();
 #endif
